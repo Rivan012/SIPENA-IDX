@@ -101,4 +101,48 @@ class AuthTest extends TestCase
         $response->assertRedirect('/admin/login');
         $this->assertGuest('admin');
     }
+
+    public function test_user_can_view_forgot_password_page(): void
+    {
+        $response = $this->get('/forgot-password');
+        $response->assertStatus(200);
+    }
+
+    public function test_user_can_request_password_reset_link(): void
+    {
+        $user = User::factory()->create(['email' => 'reset@test.com']);
+
+        $response = $this->post('/forgot-password', [
+            'email' => 'reset@test.com',
+        ]);
+
+        $response->assertSessionHas('status');
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => 'reset@test.com',
+        ]);
+    }
+
+    public function test_user_can_view_reset_password_page(): void
+    {
+        $response = $this->get('/reset-password/sample-token?email=reset@test.com');
+        $response->assertStatus(200);
+    }
+
+    public function test_user_can_reset_password(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'reset@test.com',
+            'password' => Hash::make('oldpassword'),
+        ]);
+
+        $response = $this->post('/reset-password', [
+            'token' => 'sample-token',
+            'email' => 'reset@test.com',
+            'password' => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
+        ]);
+
+        $response->assertRedirect('/login');
+        $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
+    }
 }

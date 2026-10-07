@@ -78,6 +78,57 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Kredensial Admin tidak cocok.'])->onlyInput('email');
     }
 
+    public function showForgotPasswordForm(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLinkEmail(Request $request): RedirectResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        // Catat token pemulihan jika user terdaftar (tidak menampilkan status untuk keamanan)
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            \Illuminate\Support\Facades\DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $user->email],
+                ['token' => Hash::make(\Illuminate\Support\Str::random(60)), 'created_at' => now()]
+            );
+        }
+
+        return back()->with('status', 'Jika email Anda terdaftar, tautan pemulihan kata sandi telah dikirim.');
+    }
+
+    public function showResetPasswordForm(Request $request, string $token): View
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->query('email'),
+        ]);
+    }
+
+    public function resetPassword(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (! $user) {
+            return back()->withErrors(['email' => 'Alamat email tidak ditemukan.']);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+        ])->save();
+
+        \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return redirect()->route('login')->with('status', 'Kata sandi berhasil disimpan. Silakan masuk menggunakan kata sandi baru Anda.');
+    }
+
     public function logout(Request $request): RedirectResponse
     {
         if (Auth::guard('admin')->check()) {
