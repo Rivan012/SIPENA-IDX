@@ -145,4 +145,17 @@ class AuthTest extends TestCase
         $response->assertRedirect('/login');
         $this->assertTrue(Hash::check('newpassword123', $user->fresh()->password));
     }
+
+    public function test_admin_can_view_dashboard(): void
+    {
+        $admin = Admin::create([
+            'name' => 'Admin Test',
+            'email' => 'admin_dash@test.com',
+            'password' => Hash::make('password123'),
+            'jabatan' => 'Staff',
+        ]);
+        $response = $this->actingAs($admin, 'admin')->get('/admin/dashboard');
+        $response->assertStatus(200);
+        $response->assertSee('Selamat Datang di Portal SIPENA');
+    }
 }
