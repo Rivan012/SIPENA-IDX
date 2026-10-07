@@ -4,11 +4,11 @@
         <div>
             <div class="w-11 h-11 rounded-xl bg-[#FEECEC] text-[#7A0C14] flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l4-4m0 0l-4-4m4 4H3m8-8h7a2 2 0 012 2v12a2 2 0 01-2 2h-7" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-[#0B192C] mt-3.5">Masuk ke SIPENA</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">Selamat datang kembali. Gunakan akun Anda untuk mengakses ruang kerja SIPENA.</p>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#0B192C] mt-4">Masuk ke SIPENA</h1>
+            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Selamat datang kembali. Gunakan akun Anda untuk mengakses ruang kerja SIPENA.</p>
         </div>
 
         {{-- Error Alert --}}
@@ -46,7 +46,7 @@
                     value="{{ old('email') }}"
                     required
                     placeholder="nama@idx.co.id"
-                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
+                    class="w-full h-11 px-3.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
                 >
                 <p class="text-[11px] text-slate-500 mt-1">Gunakan email yang terhubung dengan akun Anda.</p>
             </div>
@@ -61,7 +61,7 @@
                         name="password"
                         required
                         placeholder="Masukkan kata sandi"
-                        class="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
+                        class="w-full h-11 pl-3.5 pr-10 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
                     >
                     <button
                         type="button"
@@ -78,7 +78,7 @@
             </div>
 
             {{-- Remember Me & Forgot Password --}}
-            <div class="flex items-center justify-between pt-0.5">
+            <div class="flex items-center justify-between pt-1">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                     <input
                         type="checkbox"
@@ -86,10 +86,10 @@
                         id="remember"
                         class="w-4 h-4 rounded border-slate-300 text-[#7A0C14] focus:ring-[#7A0C14] focus:ring-offset-0"
                     >
-                    <span class="text-xs sm:text-sm text-slate-600">Ingat Saya</span>
+                    <span class="text-sm text-slate-600">Ingat Saya</span>
                 </label>
 
-                <a href="{{ route('password.request') }}" class="text-xs sm:text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
+                <a href="{{ route('password.request') }}" class="text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
                     Lupa Kata Sandi?
                 </a>
             </div>
@@ -98,7 +98,7 @@
             <div class="pt-1">
                 <button
                     type="submit"
-                    class="w-full bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm transition text-sm cursor-pointer"
+                    class="w-full h-11 bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold rounded-lg shadow-sm transition text-sm flex items-center justify-center cursor-pointer"
                 >
                     Masuk
                 </button>
@@ -106,8 +106,8 @@
         </form>
 
         {{-- Notice Callout: Belum memiliki akun --}}
-        <div class="bg-[#F8F9FA] rounded-xl p-4 border border-slate-100">
-            <h2 class="text-xs sm:text-sm font-bold text-[#0B192C]">Belum memiliki akun?</h2>
+        <div class="bg-[#F8F9FA] rounded-xl p-4 sm:p-5 border border-slate-200/60">
+            <h2 class="text-sm font-bold text-[#0B192C]">Belum memiliki akun?</h2>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">
                 Hubungi admin SIPENA di unit Anda untuk mendapatkan akun dan akses. Tidak tersedia pendaftaran mandiri.
             </p>

@@ -7,8 +7,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-[#0B192C] mt-3.5">Lupa kata sandi?</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">Masukkan email akun Anda. Kami akan mengirimkan tautan untuk membuat kata sandi baru.</p>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#0B192C] mt-4">Lupa kata sandi?</h1>
+            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Masukkan email akun Anda. Kami akan mengirimkan tautan untuk membuat kata sandi baru.</p>
         </div>
 
         {{-- Error Alert --}}
@@ -45,7 +45,7 @@
                     value="{{ old('email') }}"
                     required
                     placeholder="nama@idx.co.id"
-                    class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
+                    class="w-full h-11 px-3.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
                 >
                 <p class="text-[11px] text-slate-500 mt-1">Gunakan email yang terhubung dengan akun Anda.</p>
             </div>
@@ -53,14 +53,14 @@
             <div class="pt-1">
                 <button
                     type="submit"
-                    class="w-full bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm transition text-sm cursor-pointer"
+                    class="w-full h-11 bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold rounded-lg shadow-sm transition text-sm flex items-center justify-center cursor-pointer"
                 >
                     Kirim Tautan Reset
                 </button>
             </div>
 
             <div class="pt-1 text-center">
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
                     <span>&larr;</span>
                     <span>Kembali ke Masuk</span>
                 </a>
@@ -73,8 +73,8 @@
         </p>
 
         {{-- Notice Callout: Belum menerima email --}}
-        <div class="bg-[#F8F9FA] rounded-xl p-4 border border-slate-100">
-            <h2 class="text-xs sm:text-sm font-bold text-[#0B192C]">Belum menerima email?</h2>
+        <div class="bg-[#F8F9FA] rounded-xl p-4 sm:p-5 border border-slate-200/60">
+            <h2 class="text-sm font-bold text-[#0B192C]">Belum menerima email?</h2>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">
                 Periksa folder spam atau junk. Jika masih membutuhkan bantuan, hubungi admin SIPENA di unit Anda.
             </p>

@@ -7,8 +7,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-[#0B192C] mt-3.5">Reset kata sandi</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">Buat kata sandi baru untuk akun Anda. Pilih kata sandi yang kuat dan belum pernah digunakan.</p>
+            <h1 class="text-2xl font-semibold tracking-tight text-[#0B192C] mt-4">Reset kata sandi</h1>
+            <p class="text-sm text-slate-500 mt-1 leading-relaxed">Buat kata sandi baru untuk akun Anda. Pilih kata sandi yang kuat dan belum pernah digunakan.</p>
         </div>
 
         {{-- Error Alert --}}
@@ -41,7 +41,7 @@
                         name="password"
                         required
                         placeholder="Masukkan kata sandi baru"
-                        class="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
+                        class="w-full h-11 pl-3.5 pr-10 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
                     >
                     <button
                         type="button"
@@ -58,7 +58,7 @@
             </div>
 
             {{-- Requirements Box --}}
-            <div class="bg-[#F8F9FA] rounded-lg p-3 border border-slate-200/60 text-xs text-slate-600 space-y-1">
+            <div class="bg-[#F8F9FA] rounded-lg p-3.5 border border-slate-200/60 text-xs text-slate-600 space-y-1.5">
                 <p class="font-semibold text-slate-700">Kata sandi harus memenuhi ketentuan berikut:</p>
                 <ul class="space-y-1 text-slate-500 pl-3">
                     <li class="list-disc">Minimal 8 karakter.</li>
@@ -77,7 +77,7 @@
                         name="password_confirmation"
                         required
                         placeholder="Ulangi kata sandi baru"
-                        class="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
+                        class="w-full h-11 pl-3.5 pr-10 rounded-lg border border-slate-300 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7A0C14]/20 focus:border-[#7A0C14] transition"
                     >
                     <button
                         type="button"
@@ -91,21 +91,21 @@
                         </svg>
                     </button>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-1">Masukkan kembali kata sandi yang sama.</p>
+                <p class="text-[11px] text-slate-500 mt-1">Masukkan kembali kata sandi yang sama.</p>
             </div>
 
             {{-- Submit Button --}}
             <div class="pt-1">
                 <button
                     type="submit"
-                    class="w-full bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm transition text-sm cursor-pointer"
+                    class="w-full h-11 bg-[#7A0C14] hover:bg-[#600A10] text-white font-semibold rounded-lg shadow-sm transition text-sm flex items-center justify-center cursor-pointer"
                 >
                     Simpan Kata Sandi
                 </button>
             </div>
 
             <div class="pt-1 text-center">
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-[#7A0C14] hover:text-[#5E080F] hover:underline">
                     <span>&larr;</span>
                     <span>Kembali ke Masuk</span>
                 </a>
