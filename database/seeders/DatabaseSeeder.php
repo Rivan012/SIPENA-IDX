@@ -35,5 +35,7 @@ class DatabaseSeeder extends Seeder
                 'no_telepon' => '089876543210',
             ]
         );
+
+        $this->call(KegiatanSeeder::class);
     }
 }

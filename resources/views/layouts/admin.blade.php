@@ -53,17 +53,17 @@
 
                     {{-- Kegiatan --}}
                     <a href="{{ route('admin.kegiatan.index') }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-100/70 hover:bg-[#780D14] hover:text-white transition">
-                        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('admin.kegiatan.*') ? 'bg-[#85131B] text-white shadow-xs font-semibold' : 'text-rose-100/70 hover:bg-[#780D14] hover:text-white' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>Kegiatan</span>
                     </a>
 
                     {{-- Kalender --}}
-                    <a href="{{ route('admin.kegiatan.index') }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-100/70 hover:bg-[#780D14] hover:text-white transition">
-                        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <a href="{{ route('admin.kalender.index') }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {{ request()->routeIs('admin.kalender.*') ? 'bg-[#85131B] text-white shadow-xs font-semibold' : 'text-rose-100/70 hover:bg-[#780D14] hover:text-white' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>Kalender</span>
@@ -71,29 +71,36 @@
 
                     {{-- Anggaran --}}
                     <a href="{{ route('admin.rencana-kegiatan.index') }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-100/70 hover:bg-[#780D14] hover:text-white transition">
-                        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {{ (request()->routeIs('admin.rencana-kegiatan.*') || request()->routeIs('admin.anggaran.*')) ? 'bg-white/12 text-white shadow-xs font-semibold' : 'text-rose-100/70 hover:bg-[#780D14] hover:text-white' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                         <span>Anggaran</span>
                     </a>
 
-                    {{-- Approval (with Badge 3) --}}
+                    {{-- Approval --}}
+                    @php
+                        $pendingApprovalCount = \App\Models\PengajuanKegiatan::whereIn('status', ['diajukan', 'diproses'])->count();
+                    @endphp
                     <a href="{{ route('admin.pengajuan.index') }}"
-                       class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-rose-100/70 hover:bg-[#780D14] hover:text-white transition">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {{ (request()->routeIs('admin.pengajuan.*') || request()->routeIs('admin.approval.*')) ? 'bg-white/12 text-white shadow-xs font-semibold' : 'text-rose-100/70 hover:bg-[#780D14] hover:text-white' }}">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                             </svg>
                             <span>Approval</span>
                         </div>
-                        <span class="w-4.5 h-4.5 rounded-full bg-white text-[#680A10] font-bold text-[11px] flex items-center justify-center">3</span>
+                        @if ($pendingApprovalCount > 0)
+                            <span class="px-1.5 py-0.5 rounded-full bg-white text-[#680A10] font-bold text-[10px] min-w-[18px] text-center shadow-xs leading-none">
+                                {{ $pendingApprovalCount }}
+                            </span>
+                        @endif
                     </a>
 
                     {{-- Pengguna --}}
                     <a href="{{ route('admin.monitoring') }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-100/70 hover:bg-[#780D14] hover:text-white transition">
-                        <svg class="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {{ (request()->routeIs('admin.monitoring*') || request()->routeIs('admin.pengguna*')) ? 'bg-white/12 text-white shadow-xs font-semibold' : 'text-rose-100/70 hover:bg-[#780D14] hover:text-white' }}">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                         <span>Pengguna</span>
@@ -190,5 +197,6 @@
             {{ $slot }}
         </main>
     </div>
+    @stack('scripts')
 </body>
 </html>

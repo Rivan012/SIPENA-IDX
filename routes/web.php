@@ -60,16 +60,24 @@ Route::middleware('auth:web')->name('user.')->group(function () {
 Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminCtrl\DashboardController::class, 'index'])->name('dashboard');
 
-    // Perencanaan
+    // Perencanaan & Anggaran
+    Route::get('anggaran', [AdminCtrl\RencanaKegiatanController::class, 'index'])->name('anggaran.index');
+    Route::get('rencana-kegiatan/export', [AdminCtrl\RencanaKegiatanController::class, 'export'])->name('rencana-kegiatan.export');
+    Route::post('rencana-kegiatan/{rencana_kegiatan}/ajukan', [AdminCtrl\RencanaKegiatanController::class, 'ajukan'])->name('rencana-kegiatan.ajukan');
     Route::resource('rencana-kegiatan', AdminCtrl\RencanaKegiatanController::class);
     Route::post('rencana-kegiatan/{rencana}/detail', [AdminCtrl\DetailKegiatanController::class, 'store'])->name('rencana-kegiatan.detail.store');
     Route::put('rencana-kegiatan/{rencana}/detail', [AdminCtrl\DetailKegiatanController::class, 'update'])->name('rencana-kegiatan.detail.update');
 
-    // Pengajuan
+    // Pengajuan & Approval
+    Route::get('approval', [AdminCtrl\PengajuanKegiatanController::class, 'index'])->name('approval.index');
+    Route::get('pengajuan/export', [AdminCtrl\PengajuanKegiatanController::class, 'export'])->name('pengajuan.export');
     Route::get('pengajuan', [AdminCtrl\PengajuanKegiatanController::class, 'index'])->name('pengajuan.index');
     Route::get('pengajuan/{pengajuan}', [AdminCtrl\PengajuanKegiatanController::class, 'show'])->name('pengajuan.show');
     Route::post('pengajuan', [AdminCtrl\PengajuanKegiatanController::class, 'store'])->name('pengajuan.store');
     Route::patch('pengajuan/{pengajuan}/status', [AdminCtrl\PengajuanKegiatanController::class, 'updateStatus'])->name('pengajuan.status');
+
+    // Kalender
+    Route::get('kalender', [AdminCtrl\KalenderController::class, 'index'])->name('kalender.index');
 
     // Kegiatan & Agenda
     Route::resource('kegiatan', AdminCtrl\KegiatanController::class);
@@ -86,6 +94,8 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     // Komunikasi / Notifikasi
     Route::resource('notifikasi', AdminCtrl\NotifikasiController::class)->only(['index', 'create', 'store', 'destroy']);
 
-    // Monitoring
+    // Monitoring & Manajemen Pengguna
+    Route::get('monitoring/export', [AdminCtrl\MonitoringController::class, 'export'])->name('monitoring.export');
     Route::get('monitoring', [AdminCtrl\MonitoringController::class, 'index'])->name('monitoring');
+    Route::get('pengguna', [AdminCtrl\MonitoringController::class, 'index'])->name('pengguna.index');
 });
