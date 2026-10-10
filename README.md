@@ -1,58 +1,138 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIPENA — IDX Bengkulu
+### Sistem Informasi Perencanaan & Edukasi Pasar Modal
+**PT Bursa Efek Indonesia (BEI) — Kantor Perwakilan Bengkulu**
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+SIPENA adalah platform web terintegrasi untuk perencanaan jadwal edukasi pasar modal, pemantauan alokasi anggaran belanja RKAP, alur approval proposal kegiatan, dan portal peserta edukasi publik.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Backend**: Laravel 11, PHP 8.2+
+- **Frontend**: Inertia.js v2 (`@inertiajs/vue3`), Vue 3, Tailwind CSS v4, Ziggy
+- **Database**: MySQL / MariaDB (SQLite untuk test suite in-memory)
+- **Build Tool**: Vite 8
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## ✨ Fitur Utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Landing Page Publik
+- **Katalog Jadwal Edukasi**: Preview kegiatan mendatang (Oktober–November 2026).
+- **Filter Interaktif**: Pencarian real-time berdasarkan topik, kategori, wilayah, dan format (Daring/Tatap Muka) tanpa reload.
+- **Topik Belajar**: Dasar pasar modal, Sekolah Pasar Modal (SPM), pasar modal syariah, dan literasi investasi.
+- **Informasi & FAQ**: Profil BEI, alur partisipasi, dan pertanyaan umum.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 2. Portal Peserta (User)
+- **Sidebar Navigasi Responsif**: Desain konsisten dengan navigasi sisi kiri dan drawer mobile.
+- **Dashboard Peserta**: Ringkasan keikutsertaan dan agenda terdekat.
+- **Katalog & Pendaftaran**: Pendaftaran mandiri dan pembatalan partisipasi kegiatan.
+- **Kegiatan Saya**: Pelacakan status keikutsertaan acara edukasi.
+- **Laporan Edukasi & Notifikasi**: Akses laporan kegiatan publik dan pusat pemberitahuan.
+- **Profil Pengguna**: Pembaruan data akun dan kata sandi.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 3. Modul Administrator
+- **Dashboard Eksekutif**: Metrik jumlah kegiatan, realisasi vs pagu anggaran RKAP, pending approval, dan agenda terbaru.
+- **Kalender Interaktif**: Tampilan kalender bulanan dengan panel detail agenda di sisi samping tanpa reload halaman saat tanggal diklik.
+- **Manajemen Kegiatan**: CRUD kegiatan edukasi, kuota peserta, status pelaksanaan, dan ekspor CSV.
+- **Pagu & Anggaran RKAP**: Alokasi anggaran program, rincian pos belanja detail kegiatan, perhitungan serapan RKAP, dan ekspor CSV.
+- **Approval Pengajuan Proposal**: Verifikasi berjenjang (Setujui, Minta Revisi, Tolak), pencatatan catatan review, auto-create entri kegiatan saat proposal disetujui, dan ekspor CSV.
+- **Monitoring & Pengguna**: Tab switching Peserta vs Administrator, pemantauan riwayat keikutsertaan, dan ekspor CSV.
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 🛠️ Panduan Instalasi
+
+### 1. Prasyarat
+- PHP >= 8.2 dengan ekstensi `pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `curl`
+- Composer 2.x
+- Node.js >= 18.x & npm
+
+### 2. Langkah Setup
 
 ```bash
-composer require laravel/boost --dev
+# Clone repository
+git clone <repository-url>
+cd SIPENA-IDX
 
-php artisan boost:install
+# Install dependensi PHP
+composer install
+
+# Install dependensi Frontend
+npm install
+
+# Salin environment file
+cp .env.example .env
+
+# Generate Application Key
+php artisan key:generate
+
+# Konfigurasi database pada file .env, kemudian jalankan migrasi & seeder
+php artisan migrate --seed
+
+# Kompilasi aset frontend
+npm run build
+
+# Jalankan local development server
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Aplikasi dapat diakses melalui browser pada: `http://localhost:8000`
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 👤 Akun Pengujian Default
 
-## Code of Conduct
+| Role | Email | Password | Akses |
+|---|---|---|---|
+| **Administrator** | `admin@bei.co.id` | `password123` | `/admin/login` |
+| **Peserta (User)** | `peserta@example.com` | `password123` | `/login` |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🧪 Pengujian Otomatis (Testing)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Proyek dilengkapi dengan 48 feature test PHPUnit yang mencakup seluruh alur otentikasi, perizinan, aksi CRUD, alur approval, navigasi kalender, dan kontrak respons Inertia.js:
 
-## License
+```bash
+php artisan test
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Hasil Verifikasi**:
+```text
+Tests:    48 passed (266 assertions)
+Duration: ~2.0s
+```
+
+---
+
+## 📁 Struktur Direktori Utama
+
+```text
+SIPENA-IDX/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/         # Controller operasional admin (Dashboard, Kegiatan, Kalender, Anggaran, Approval, Monitoring)
+│   │   │   ├── User/          # Controller portal peserta (Dashboard, Kegiatan, Laporan, Notifikasi, Profil)
+│   │   │   └── AuthController.php
+│   │   └── Middleware/
+│   │       └── HandleInertiaRequests.php
+│   └── Models/                # Model Eloquent (Kegiatan, RencanaKegiatan, DetailKegiatan, PengajuanKegiatan, dll.)
+├── resources/
+│   ├── js/
+│   │   ├── Layouts/           # Master layouts (AdminLayout.vue, UserLayout.vue)
+│   │   ├── Pages/             # Halaman Inertia Vue 3 (Admin, User, Auth, Welcome.vue)
+│   │   └── app.js             # Inisialisasi Inertia & Ziggy
+│   └── views/
+│       └── app.blade.php      # Root HTML template Inertia
+├── routes/
+│   └── web.php                # Definisi rute aplikasi
+└── tests/
+    └── Feature/               # Test suites (AdminKegiatan, AdminKalender, AdminAnggaran, AdminApproval, AdminPengguna, Auth, dll.)
+```
+
+---
+
+## 📄 Lisensi
+Hak Cipta © 2026 PT Bursa Efek Indonesia — Kantor Perwakilan Bengkulu.
