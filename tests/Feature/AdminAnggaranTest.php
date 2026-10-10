@@ -59,10 +59,11 @@ class AdminAnggaranTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/anggaran');
         $response->assertStatus(200);
-        $response->assertSee('Rencana Anggaran &amp; Alokasi RKAP', false);
-        $response->assertSee('PAGU ANGGARAN RKAP');
-        $response->assertSee('Edukasi Saham Pemula');
-        $response->assertSee('12.500.000');
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Admin/RencanaKegiatan/Index')
+            ->has('rencanaList.data', 1)
+            ->where('rencanaList.data.0.nama_kegiatan', 'Edukasi Saham Pemula')
+        );
     }
 
     public function test_admin_can_create_new_rencana_anggaran(): void

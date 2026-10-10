@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public
 Route::get('/', function () {
-    return view('welcome');
+    return \Inertia\Inertia::render('Welcome');
 })->name('home');
 
 // Guest / Authentication

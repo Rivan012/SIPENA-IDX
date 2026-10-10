@@ -47,10 +47,11 @@ class AdminPenggunaTest extends TestCase
     {
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/pengguna');
         $response->assertStatus(200);
-        $response->assertSee('Manajemen Pengguna &amp; Peserta', false);
-        $response->assertSee('PESERTA TERDAFTAR');
-        $response->assertSee('Peserta Ujian');
-        $response->assertSee('admin-pengguna@bei.co.id');
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Admin/Monitoring/Index')
+            ->has('users.data', 1)
+            ->where('users.data.0.name', 'Peserta Ujian')
+        );
     }
 
     public function test_admin_can_export_users_csv(): void
@@ -75,12 +76,18 @@ class AdminPenggunaTest extends TestCase
 
         $response = $this->actingAs($this->user, 'web')->get('/kegiatan');
         $response->assertStatus(200);
-        $response->assertSee('Katalog Kegiatan Edukasi');
-        $response->assertSee('SPM Batch Terbuka');
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('User/Kegiatan/Index')
+            ->has('kegiatanList.data', 1)
+            ->where('kegiatanList.data.0.nama_kegiatan', 'SPM Batch Terbuka')
+        );
 
         $responseDetail = $this->actingAs($this->user, 'web')->get("/kegiatan/{$kegiatan->id}");
         $responseDetail->assertStatus(200);
-        $responseDetail->assertSee('SPM Batch Terbuka');
+        $responseDetail->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('User/Kegiatan/Show')
+            ->where('kegiatan.nama_kegiatan', 'SPM Batch Terbuka')
+        );
     }
 
     public function test_user_can_register_and_cancel_kegiatan(): void

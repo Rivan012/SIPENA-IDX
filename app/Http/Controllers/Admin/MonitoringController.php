@@ -8,6 +8,8 @@ use App\Models\Kegiatan;
 use App\Models\Peserta;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MonitoringController extends Controller
@@ -21,7 +23,6 @@ class MonitoringController extends Controller
         $search = $request->get('search');
         $role = $request->get('role', 'all');
 
-        // Stats calculation
         $totalUsers = User::count();
         $totalAdmins = Admin::count();
         $totalPartisipasi = Peserta::count();
@@ -34,7 +35,6 @@ class MonitoringController extends Controller
             'total_hadir' => $totalHadir,
         ];
 
-        // Query Users
         $userQuery = User::query()->with(['kegiatan'])->latest();
 
         if ($search) {
@@ -47,7 +47,6 @@ class MonitoringController extends Controller
 
         $users = $userQuery->paginate(10, ['*'], 'users_page')->withQueryString();
 
-        // Query Admins
         $adminQuery = Admin::query()->latest();
         if ($search) {
             $adminQuery->where(function ($q) use ($search) {
@@ -58,11 +57,12 @@ class MonitoringController extends Controller
         }
         $admins = $adminQuery->get();
 
-        return view('admin.monitoring.index', [
+        return Inertia::render('Admin/Monitoring/Index', [
             'users' => $users,
             'admins' => $admins,
             'stats' => $stats,
             'role' => $role,
+            'filters' => $request->only(['search', 'role']),
         ]);
     }
 

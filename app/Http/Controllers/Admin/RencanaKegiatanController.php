@@ -9,14 +9,13 @@ use App\Models\RencanaKegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RencanaKegiatanController extends Controller
 {
-    /**
-     * Pagu Alokasi Anggaran RKAP Tahunan (Default IDX Bengkulu)
-     */
-    public const PAGU_RKAP_DEFAULT = 350000000; // Rp 350.000.000
+    public const PAGU_RKAP_DEFAULT = 350000000;
 
     public function index(Request $request)
     {
@@ -28,7 +27,6 @@ class RencanaKegiatanController extends Controller
             ->with(['detailKegiatan', 'pengajuanKegiatan', 'kegiatan', 'admin'])
             ->latest('tanggal_rencana');
 
-        // Search filter
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_kegiatan', 'like', "%{$search}%")
@@ -41,17 +39,14 @@ class RencanaKegiatanController extends Controller
             });
         }
 
-        // Status filter
         if ($status = $request->get('status')) {
             $query->where('status', $status);
         }
 
-        // Jenis filter
         if ($jenis = $request->get('jenis')) {
             $query->where('jenis_kegiatan', $jenis);
         }
 
-        // Year filter (detect from data if not passed)
         $selectedYear = $request->get('year');
         if (!$selectedYear) {
             $latestRencana = RencanaKegiatan::orderByDesc('tanggal_rencana')->first();
@@ -61,7 +56,6 @@ class RencanaKegiatanController extends Controller
             $query->whereYear('tanggal_rencana', (int) $selectedYear);
         }
 
-        // Summary Calculations (KPI Metrics)
         $allRencanaQuery = RencanaKegiatan::with('detailKegiatan');
         if ($selectedYear !== 'all') {
             $allRencanaQuery->whereYear('tanggal_rencana', (int) $selectedYear);
@@ -77,9 +71,13 @@ class RencanaKegiatanController extends Controller
 
         $stats = [
             'pagu_rkap' => $paguRkap,
+            'pagu_rkap_formatted' => 'Rp ' . number_format($paguRkap, 0, ',', '.'),
             'total_alokasi' => $totalAlokasi,
+            'total_alokasi_formatted' => 'Rp ' . number_format($totalAlokasi, 0, ',', '.'),
             'total_disetujui' => $totalDisetujui,
+            'total_disetujui_formatted' => 'Rp ' . number_format($totalDisetujui, 0, ',', '.'),
             'sisa_pagu' => $sisaPagu,
+            'sisa_pagu_formatted' => 'Rp ' . number_format($sisaPagu, 0, ',', '.'),
             'persen_penyerapan' => $persenPenyerapan,
             'total_kegiatan' => $allRencana->count(),
             'count_draft' => $allRencana->where('status', 'draft')->count(),
@@ -92,14 +90,15 @@ class RencanaKegiatanController extends Controller
         $rencanaList = $query->paginate(10)->withQueryString();
         $availableCategories = RencanaKegiatan::distinct()->pluck('jenis_kegiatan')->filter()->values();
 
-        return view('admin.rencana-kegiatan.index', [
+        return Inertia::render('Admin/RencanaKegiatan/Index', [
             'rencanaList' => $rencanaList,
             'stats' => $stats,
             'categories' => $availableCategories,
+            'filters' => $request->only(['search', 'status', 'jenis', 'year']),
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         $rencana = new RencanaKegiatan([
             'tanggal_rencana' => now()->addDays(7)->format('Y-m-d'),
@@ -113,7 +112,7 @@ class RencanaKegiatanController extends Controller
             'anggaran' => 10000000,
         ]);
 
-        return view('admin.rencana-kegiatan.create', [
+        return Inertia::render('Admin/RencanaKegiatan/Create', [
             'rencana' => $rencana,
             'detail' => $detail,
             'categories' => ['SPM', 'Sosialisasi', 'Workshop', 'Edukasi', 'Webinar'],
@@ -161,7 +160,6 @@ class RencanaKegiatanController extends Controller
                 'anggaran' => $validated['anggaran'],
             ]);
 
-            // Jika status langsung diajukan, buatkan berkas pengajuan kegiatan
             if ($status === 'diajukan') {
                 PengajuanKegiatan::create([
                     'rencana_kegiatan_id' => $rencana->id,
@@ -180,22 +178,22 @@ class RencanaKegiatanController extends Controller
             ->with('success', "Rencana Anggaran \"{$rencana->nama_kegiatan}\" berhasil dibuat.");
     }
 
-    public function show(RencanaKegiatan $rencana_kegiatan)
+    public function show(RencanaKegiatan $rencana_kegiatan): Response
     {
         $rencana_kegiatan->load(['detailKegiatan', 'pengajuanKegiatan.admin', 'kegiatan', 'admin']);
 
-        return view('admin.rencana-kegiatan.show', [
+        return Inertia::render('Admin/RencanaKegiatan/Show', [
             'rencana' => $rencana_kegiatan,
             'detail' => $rencana_kegiatan->detailKegiatan,
             'pengajuan' => $rencana_kegiatan->pengajuanKegiatan->sortByDesc('created_at')->first(),
         ]);
     }
 
-    public function edit(RencanaKegiatan $rencana_kegiatan)
+    public function edit(RencanaKegiatan $rencana_kegiatan): Response
     {
         $rencana_kegiatan->load('detailKegiatan');
 
-        return view('admin.rencana-kegiatan.edit', [
+        return Inertia::render('Admin/RencanaKegiatan/Edit', [
             'rencana' => $rencana_kegiatan,
             'detail' => $rencana_kegiatan->detailKegiatan ?? new DetailKegiatan(),
             'categories' => ['SPM', 'Sosialisasi', 'Workshop', 'Edukasi', 'Webinar'],
@@ -255,9 +253,6 @@ class RencanaKegiatanController extends Controller
             ->with('success', "Rencana Anggaran \"{$nama}\" berhasil dihapus.");
     }
 
-    /**
-     * Submit draft rencana ke tahap pengajuan review anggaran
-     */
     public function ajukan(RencanaKegiatan $rencana_kegiatan)
     {
         $adminId = Auth::guard('admin')->id();
@@ -280,9 +275,6 @@ class RencanaKegiatanController extends Controller
         return back()->with('success', "Rencana \"{$rencana_kegiatan->nama_kegiatan}\" berhasil diajukan untuk review anggaran.");
     }
 
-    /**
-     * Export Rencana Anggaran ke CSV
-     */
     public function export(Request $request): StreamedResponse
     {
         $query = RencanaKegiatan::with('detailKegiatan', 'admin')->latest('tanggal_rencana');
@@ -300,7 +292,7 @@ class RencanaKegiatanController extends Controller
 
         return response()->stream(function () use ($items) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM for Excel UTF-8
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
             fputcsv($handle, [
                 'Kode Rencana',
                 'Nama Kegiatan',

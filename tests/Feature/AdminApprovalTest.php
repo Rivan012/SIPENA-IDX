@@ -66,10 +66,11 @@ class AdminApprovalTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/pengajuan');
         $response->assertStatus(200);
-        $response->assertSee('Approval &amp; Persetujuan Kegiatan', false);
-        $response->assertSee('MENUNGGU REVIEW');
-        $response->assertSee('PROP-20250515-001');
-        $response->assertSee('Edukasi Saham Pemula');
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Admin/Pengajuan/Index')
+            ->has('pengajuanList.data', 1)
+            ->where('pengajuanList.data.0.nomor_pengajuan', 'PROP-20250515-001')
+        );
     }
 
     public function test_admin_can_view_approval_detail(): void
@@ -92,9 +93,10 @@ class AdminApprovalTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get("/admin/pengajuan/{$pengajuan->id}");
         $response->assertStatus(200);
-        $response->assertSee('PROP-20250610-002');
-        $response->assertSee('Workshop Investasi Syariah');
-        $response->assertSee('Keputusan Verifikasi Approval');
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Admin/Pengajuan/Show')
+            ->where('pengajuan.nomor_pengajuan', 'PROP-20250610-002')
+        );
     }
 
     public function test_admin_can_approve_proposal_and_auto_create_kegiatan(): void

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class KegiatanController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $query = Kegiatan::query()
             ->with(['agenda', 'peserta'])
@@ -33,20 +35,21 @@ class KegiatanController extends Controller
 
         $userKegiatanIds = Auth::guard('web')->user()?->kegiatan()->pluck('kegiatan.id')->toArray() ?? [];
 
-        return view('user.kegiatan.index', [
+        return Inertia::render('User/Kegiatan/Index', [
             'kegiatanList' => $kegiatanList,
             'categories' => $categories,
             'userKegiatanIds' => $userKegiatanIds,
+            'filters' => $request->only(['search', 'jenis']),
         ]);
     }
 
-    public function show($kegiatan)
+    public function show($kegiatan): Response
     {
         $item = Kegiatan::with(['agenda', 'peserta'])->findOrFail($kegiatan);
         $user = Auth::guard('web')->user();
         $isRegistered = $user ? $item->peserta()->where('user_id', $user->id)->exists() : false;
 
-        return view('user.kegiatan.show', [
+        return Inertia::render('User/Kegiatan/Show', [
             'kegiatan' => $item,
             'isRegistered' => $isRegistered,
         ]);

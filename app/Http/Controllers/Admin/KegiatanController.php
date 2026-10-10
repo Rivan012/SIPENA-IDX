@@ -8,6 +8,8 @@ use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class KegiatanController extends Controller
 {
@@ -22,7 +24,6 @@ class KegiatanController extends Controller
                 ->orWhere('jenis_kegiatan', 'like', "%{$s}%")))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->kategori, fn ($q, $k) => $q->where('jenis_kegiatan', $k))
-            // berjalan & mendatang first, selesai & dibatalkan last
             ->orderByRaw("CASE WHEN status IN ('selesai','dibatalkan') THEN 1 ELSE 0 END")
             ->orderByDesc('tanggal');
 
@@ -44,16 +45,17 @@ class KegiatanController extends Controller
             'menunggu' => Kegiatan::where('status', 'menunggu_approval')->count(),
         ];
 
-        return view('admin.kegiatan.index', [
+        return Inertia::render('Admin/Kegiatan/Index', [
             'kegiatan' => $query->paginate(10)->withQueryString(),
             'stats' => $stats,
             'kategori' => Kegiatan::distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),
+            'filters' => $request->only(['search', 'status', 'kategori']),
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
-        return view('admin.kegiatan.create', $this->formOptions(new Kegiatan(['status' => 'menunggu_approval'])));
+        return Inertia::render('Admin/Kegiatan/Create', $this->formOptions(new Kegiatan(['status' => 'menunggu_approval'])));
     }
 
     public function store(Request $request)
@@ -63,16 +65,18 @@ class KegiatanController extends Controller
         return redirect()->route('admin.kegiatan.index')->with('success', 'Kegiatan berhasil ditambahkan.');
     }
 
-    public function show(Kegiatan $kegiatan)
+    public function show(Kegiatan $kegiatan): Response
     {
         $kegiatan->load('rencanaKegiatan.detailKegiatan', 'pengajuanKegiatan', 'agenda', 'peserta.user', 'laporanKegiatan');
 
-        return view('admin.kegiatan.show', compact('kegiatan'));
+        return Inertia::render('Admin/Kegiatan/Show', [
+            'kegiatan' => $kegiatan,
+        ]);
     }
 
-    public function edit(Kegiatan $kegiatan)
+    public function edit(Kegiatan $kegiatan): Response
     {
-        return view('admin.kegiatan.edit', $this->formOptions($kegiatan));
+        return Inertia::render('Admin/Kegiatan/Edit', $this->formOptions($kegiatan));
     }
 
     public function update(Request $request, Kegiatan $kegiatan)
@@ -96,21 +100,13 @@ class KegiatanController extends Controller
             'deskripsi' => 'required|string',
             'jenis_kegiatan' => 'required|string|max:100',
             'tanggal' => 'required|date',
-            'waktu_mulai' => 'required|date_format:H:i',
-            'waktu_selesai' => 'nullable|date_format:H:i|after:waktu_mulai',
+            'waktu_mulai' => 'required',
+            'waktu_selesai' => 'nullable',
             'lokasi' => 'required|string|max:255',
             'kuota_peserta' => 'nullable|integer|min:1',
             'status' => ['required', Rule::in(array_keys(Kegiatan::STATUS))],
             'rencana_kegiatan_id' => ['nullable', 'exists:rencana_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
             'pengajuan_kegiatan_id' => ['nullable', 'exists:pengajuan_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
-        ], [], [
-            'nama_kegiatan' => 'nama kegiatan',
-            'jenis_kegiatan' => 'kategori',
-            'waktu_mulai' => 'waktu mulai',
-            'waktu_selesai' => 'waktu selesai',
-            'kuota_peserta' => 'target peserta',
-            'rencana_kegiatan_id' => 'rencana kegiatan',
-            'pengajuan_kegiatan_id' => 'pengajuan',
         ]);
     }
 
@@ -130,8 +126,17 @@ class KegiatanController extends Controller
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Kode', 'Nama Kegiatan', 'Kategori', 'Tanggal', 'Waktu', 'Lokasi', 'Target Peserta', 'Peserta', 'Status']);
             foreach ($rows as $k) {
-                fputcsv($out, [$k->kode, $k->nama_kegiatan, $k->jenis_kegiatan, $k->tanggal->format('Y-m-d'),
-                    substr($k->waktu_mulai, 0, 5), $k->lokasi, $k->kuota_peserta, $k->peserta_count, $k->status_label]);
+                fputcsv($out, [
+                    $k->kode,
+                    $k->nama_kegiatan,
+                    $k->jenis_kegiatan,
+                    $k->tanggal?->format('Y-m-d'),
+                    substr($k->waktu_mulai, 0, 5),
+                    $k->lokasi,
+                    $k->kuota_peserta,
+                    $k->peserta_count,
+                    $k->status_label,
+                ]);
             }
             fclose($out);
         }, 'jadwal-kegiatan-'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv']);

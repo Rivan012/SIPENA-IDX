@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\Kegiatan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class AdminKalenderTest extends TestCase
@@ -47,9 +48,12 @@ class AdminKalenderTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/kalender');
         $response->assertStatus(200);
-        $response->assertSee('Kalender Perencanaan &amp; Jadwal Edukasi', false);
-        $response->assertSee('DETAIL AGENDA TERPILIH');
-        $response->assertSee('Sekolah Pasar Modal (SPM) Level 1 &amp; 2 - GI BEI UNIB', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Kalender/Index')
+            ->has('calendarWeeks')
+            ->has('eventsClient')
+            ->has('eventsByDate')
+        );
     }
 
     public function test_admin_can_navigate_month_and_filter_status(): void
@@ -68,8 +72,10 @@ class AdminKalenderTest extends TestCase
             ->get('/admin/kalender?year=2026&month=3&status=approval');
 
         $response->assertStatus(200);
-        $response->assertSee('Maret 2026');
-        $response->assertSee('Workshop Syariah Maret');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Kalender/Index')
+            ->where('currentMonthName', 'Maret 2026')
+        );
     }
 
     public function test_kalender_initializes_client_side_reactive_events(): void
@@ -86,8 +92,10 @@ class AdminKalenderTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/kalender');
         $response->assertStatus(200);
-        $response->assertSee('kalenderApp', false);
-        $response->assertSee('selectDate', false);
-        $response->assertSee('selectEvent', false);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Kalender/Index')
+            ->has('eventsClient.0')
+            ->where('eventsClient.0.nama_kegiatan', 'Simulasi Saham Digital')
+        );
     }
 }

@@ -5,10 +5,12 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class KegiatanSayaController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
         $user = Auth::guard('web')->user();
 
@@ -17,7 +19,7 @@ class KegiatanSayaController extends Controller
             ->orderBy('tanggal', 'desc')
             ->paginate(10);
 
-        return view('user.kegiatan-saya', [
+        return Inertia::render('User/KegiatanSaya', [
             'kegiatanList' => $kegiatanList,
         ]);
     }

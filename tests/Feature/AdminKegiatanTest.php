@@ -53,7 +53,7 @@ class AdminKegiatanTest extends TestCase
     {
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan/create');
         $response->assertStatus(200);
-        $response->assertSee('Tambah Kegiatan Baru');
+        $response->assertInertia(fn ($page) => $page->component('Admin/Kegiatan/Create'));
     }
 
     public function test_admin_can_store_kegiatan(): void
@@ -111,6 +111,7 @@ class AdminKegiatanTest extends TestCase
 
         $editResponse = $this->actingAs($this->admin, 'admin')->get("/admin/kegiatan/{$kegiatan->id}/edit");
         $editResponse->assertStatus(200);
+        $editResponse->assertInertia(fn ($page) => $page->component('Admin/Kegiatan/Edit'));
 
         $updateResponse = $this->actingAs($this->admin, 'admin')->put("/admin/kegiatan/{$kegiatan->id}", [
             'nama_kegiatan' => 'Training of Trainers (ToT) Revisi',

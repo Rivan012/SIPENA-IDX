@@ -5,11 +5,12 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(): Response
     {
         $user = Auth::guard('web')->user();
 
@@ -24,8 +25,7 @@ class DashboardController extends Controller
 
         $myRecentEvents = $user ? $user->kegiatan()->orderBy('tanggal', 'desc')->take(3)->get() : collect();
 
-        return view('user.dashboard', [
-            'user' => $user,
+        return Inertia::render('User/Dashboard', [
             'kegiatanDiikuti' => $kegiatanDiikuti,
             'kegiatanHadir' => $kegiatanHadir,
             'upcomingEvents' => $upcomingEvents,

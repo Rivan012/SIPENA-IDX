@@ -7,13 +7,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AuthController extends Controller
 {
-    public function showLoginForm(): View
+    public function showLoginForm(): Response
     {
-        return view('auth.login');
+        return Inertia::render('Auth/Login');
     }
 
     public function login(Request $request): RedirectResponse
@@ -31,9 +32,9 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Kredensial tidak cocok.'])->onlyInput('email');
     }
 
-    public function showRegisterForm(): View
+    public function showRegisterForm(): Response
     {
-        return view('auth.register');
+        return Inertia::render('Auth/Register');
     }
 
     public function register(Request $request): RedirectResponse
@@ -58,9 +59,9 @@ class AuthController extends Controller
         return redirect()->route('user.dashboard');
     }
 
-    public function showAdminLoginForm(): View
+    public function showAdminLoginForm(): Response
     {
-        return view('auth.admin-login');
+        return Inertia::render('Auth/AdminLogin');
     }
 
     public function adminLogin(Request $request): RedirectResponse
@@ -78,9 +79,11 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Kredensial Admin tidak cocok.'])->onlyInput('email');
     }
 
-    public function showForgotPasswordForm(): View
+    public function showForgotPasswordForm(): Response
     {
-        return view('auth.forgot-password');
+        return Inertia::render('Auth/ForgotPassword', [
+            'status' => session('status'),
+        ]);
     }
 
     public function sendResetLinkEmail(Request $request): RedirectResponse
@@ -99,9 +102,9 @@ class AuthController extends Controller
         return back()->with('status', 'Jika email Anda terdaftar, tautan pemulihan kata sandi telah dikirim.');
     }
 
-    public function showResetPasswordForm(Request $request, string $token): View
+    public function showResetPasswordForm(Request $request, string $token): Response
     {
-        return view('auth.reset-password', [
+        return Inertia::render('Auth/ResetPassword', [
             'token' => $token,
             'email' => $request->query('email'),
         ]);

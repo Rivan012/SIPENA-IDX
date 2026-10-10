@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class KalenderController extends Controller
 {
@@ -21,7 +23,7 @@ class KalenderController extends Controller
         'Saturday' => 'Sabtu',
     ];
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         if (!$request->has('year') && !$request->has('month')) {
             $hasNow = Kegiatan::whereYear('tanggal', now()->year)->exists();
@@ -37,7 +39,6 @@ class KalenderController extends Controller
             $month = (int) $request->get('month', now()->month);
         }
 
-        // Clamp values
         if ($month < 1 || $month > 12) {
             $month = now()->month;
         }
@@ -46,7 +47,6 @@ class KalenderController extends Controller
         $startOfMonth = $currentDate->copy()->startOfMonth();
         $endOfMonth = $currentDate->copy()->endOfMonth();
 
-        // 6-day workweek grid: Monday (1) to Saturday (6)
         $gridStart = $startOfMonth->copy();
         if ($gridStart->dayOfWeekIso > 1) {
             $gridStart->subDays($gridStart->dayOfWeekIso - 1);
@@ -59,7 +59,6 @@ class KalenderController extends Controller
             $gridEnd->addDays(6);
         }
 
-        // Query events
         $statusFilter = $request->get('status');
         $eventsQuery = Kegiatan::query()
             ->with(['rencanaKegiatan.detailKegiatan', 'rencanaKegiatan.admin', 'peserta', 'agenda'])
@@ -71,84 +70,10 @@ class KalenderController extends Controller
                 }
             });
 
-        // Get events in grid window
         $events = (clone $eventsQuery)
             ->whereBetween('tanggal', [$gridStart->format('Y-m-d'), $gridEnd->format('Y-m-d')])
             ->orderBy('waktu_mulai')
             ->get();
-
-        // Group by Y-m-d
-        $eventsByDate = $events->groupBy(fn ($item) => $item->tanggal->format('Y-m-d'));
-
-        // Build 6-day calendar weeks (Senin - Sabtu)
-        $calendarWeeks = [];
-        $cursor = $gridStart->copy();
-        $week = [];
-
-        while ($cursor->lte($gridEnd)) {
-            if ($cursor->dayOfWeekIso <= 6) {
-                $dateKey = $cursor->format('Y-m-d');
-                $week[] = [
-                    'date' => $cursor->copy(),
-                    'date_string' => $dateKey,
-                    'day' => $cursor->day,
-                    'is_current_month' => $cursor->month === $month,
-                    'is_today' => $cursor->isToday(),
-                    'events' => $eventsByDate->get($dateKey, collect()),
-                ];
-
-                if (count($week) === 6) {
-                    $calendarWeeks[] = $week;
-                    $week = [];
-                }
-            }
-            $cursor->addDay();
-        }
-
-        if (!empty($week)) {
-            $calendarWeeks[] = $week;
-        }
-
-        // Summary Statistics for current year & month
-        $allYearEvents = Kegiatan::whereYear('tanggal', $year)->get();
-
-        $stats = [
-            'total' => $allYearEvents->count(),
-            'dipublikasikan' => $allYearEvents->where('status', 'dipublikasikan')->count(),
-            'approval' => $allYearEvents->where('status', 'menunggu_approval')->count(),
-            'selesai' => $allYearEvents->where('status', 'selesai')->count(),
-            'pekan_ini' => Kegiatan::whereBetween('tanggal', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'h_minus_1' => Kegiatan::whereDate('tanggal', now()->addDay()->toDateString())
-                ->orWhereHas('agenda', fn ($q) => $q->where('is_h_minus_1', true))
-                ->count(),
-        ];
-
-        // Determine selected kegiatan for right panel
-        $selectedId = $request->get('selected_id');
-        $selectedKegiatan = null;
-
-        if ($selectedId) {
-            $selectedKegiatan = $events->firstWhere('id', (int) $selectedId);
-        }
-
-        if (!$selectedKegiatan) {
-            $selectedKegiatan = $events->first(fn ($k) => $k->agenda->contains('is_h_minus_1', true) || $k->tanggal->isTomorrow())
-                ?: $events->first(fn ($k) => $k->tanggal->gte(now()->startOfDay()))
-                ?: $events->first();
-        }
-
-        $selectedDateString = $selectedKegiatan?->tanggal?->format('Y-m-d')
-            ?? $request->get('date', now()->format('Y-m-d'));
-
-        $currentMonthName = (self::BULAN_ID[$month] ?? $currentDate->format('F')) . ' ' . $year;
-
-        $selectedDateFormatted = '28 Feb 2025';
-        if ($selectedKegiatan?->tanggal) {
-            $t = $selectedKegiatan->tanggal;
-            $hari = self::HARI_ID[$t->format('l')] ?? $t->format('l');
-            $bln = substr(self::BULAN_ID[$t->month] ?? $t->format('M'), 0, 3);
-            $selectedDateFormatted = "{$hari}, {$t->day} {$bln} {$t->year}";
-        }
 
         $eventsClient = $events->map(function ($ev) {
             $t = $ev->tanggal;
@@ -181,28 +106,64 @@ class KalenderController extends Controller
                 'is_h1' => $hasH1,
                 'pic' => $picName,
                 'anggaran' => 'Rp ' . number_format($anggaranVal, 0, ',', '.'),
-                'detail_url' => route('admin.kegiatan.show', $ev),
             ];
         });
 
         $eventsByDateClient = $eventsClient->groupBy('tanggal');
 
-        return view('admin.kalender.index', [
-            'currentDate' => $currentDate,
-            'currentMonthName' => $currentMonthName,
-            'selectedDateFormatted' => $selectedDateFormatted,
+        $calendarWeeks = [];
+        $cursor = $gridStart->copy();
+        $week = [];
+
+        while ($cursor->lte($gridEnd)) {
+            if ($cursor->dayOfWeekIso <= 6) {
+                $dateKey = $cursor->format('Y-m-d');
+                $week[] = [
+                    'date_string' => $dateKey,
+                    'day' => $cursor->day,
+                    'is_current_month' => $cursor->month === $month,
+                    'is_today' => $cursor->isToday(),
+                    'events' => $eventsByDateClient->get($dateKey, collect())->values(),
+                ];
+
+                if (count($week) === 6) {
+                    $calendarWeeks[] = $week;
+                    $week = [];
+                }
+            }
+            $cursor->addDay();
+        }
+
+        if (!empty($week)) {
+            $calendarWeeks[] = $week;
+        }
+
+        $allYearEvents = Kegiatan::whereYear('tanggal', $year)->get();
+        $stats = [
+            'total' => $allYearEvents->count(),
+            'dipublikasikan' => $allYearEvents->where('status', 'dipublikasikan')->count(),
+            'approval' => $allYearEvents->where('status', 'menunggu_approval')->count(),
+            'selesai' => $allYearEvents->where('status', 'selesai')->count(),
+        ];
+
+        $currentMonthName = (self::BULAN_ID[$month] ?? $currentDate->format('F')) . ' ' . $year;
+        $prevDate = $currentDate->copy()->subMonth();
+        $nextDate = $currentDate->copy()->addMonth();
+
+        return Inertia::render('Admin/Kalender/Index', [
             'year' => $year,
             'month' => $month,
-            'prevMonth' => $currentDate->copy()->subMonth(),
-            'nextMonth' => $currentDate->copy()->addMonth(),
+            'currentMonthName' => $currentMonthName,
+            'prevMonthParams' => ['year' => $prevDate->year, 'month' => $prevDate->month],
+            'nextMonthParams' => ['year' => $nextDate->year, 'month' => $nextDate->month],
             'calendarWeeks' => $calendarWeeks,
-            'events' => $events,
             'eventsClient' => $eventsClient,
-            'eventsByDateClient' => $eventsByDateClient,
+            'eventsByDate' => $eventsByDateClient,
             'stats' => $stats,
-            'selectedKegiatan' => $selectedKegiatan,
-            'selectedDateString' => $selectedDateString,
-            'view' => $request->get('view', 'bulan'),
+            'filters' => [
+                'status' => $statusFilter,
+                'view' => $request->get('view', 'bulan'),
+            ],
         ]);
     }
 }

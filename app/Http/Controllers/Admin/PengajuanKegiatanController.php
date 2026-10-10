@@ -9,6 +9,8 @@ use App\Models\RencanaKegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PengajuanKegiatanController extends Controller
@@ -23,7 +25,6 @@ class PengajuanKegiatanController extends Controller
             ->with(['rencanaKegiatan.detailKegiatan', 'kegiatan', 'admin'])
             ->latest('tanggal_pengajuan');
 
-        // Search filter
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nomor_pengajuan', 'like', "%{$search}%")
@@ -39,19 +40,16 @@ class PengajuanKegiatanController extends Controller
             });
         }
 
-        // Status filter
         if ($status = $request->get('status')) {
             $query->where('status', $status);
         }
 
-        // Kategori filter
         if ($kategori = $request->get('kategori')) {
             $query->whereHas('rencanaKegiatan', function ($rq) use ($kategori) {
                 $rq->where('jenis_kegiatan', $kategori);
             });
         }
 
-        // KPI Summary Counts
         $all = PengajuanKegiatan::with('rencanaKegiatan.detailKegiatan')->get();
         $menungguList = $all->where('status', 'diajukan');
         $diprosesList = $all->where('status', 'diproses');
@@ -70,25 +68,26 @@ class PengajuanKegiatanController extends Controller
             'disetujui' => $disetujuiList->count(),
             'revisi' => $revisiList->count(),
             'ditolak' => $ditolakList->count(),
-            'anggaran_review' => $totalAnggaranReview,
+            'anggaran_review' => 'Rp ' . number_format($totalAnggaranReview, 0, ',', '.'),
         ];
 
         $pengajuanList = $query->paginate(10)->withQueryString();
         $categories = RencanaKegiatan::distinct()->pluck('jenis_kegiatan')->filter()->values();
 
-        return view('admin.pengajuan.index', [
+        return Inertia::render('Admin/Pengajuan/Index', [
             'pengajuanList' => $pengajuanList,
             'stats' => $stats,
             'categories' => $categories,
+            'filters' => $request->only(['search', 'status', 'kategori']),
         ]);
     }
 
-    public function show($pengajuan)
+    public function show($pengajuan): Response
     {
         $item = PengajuanKegiatan::with(['rencanaKegiatan.detailKegiatan', 'kegiatan', 'admin'])
             ->findOrFail($pengajuan);
 
-        return view('admin.pengajuan.show', [
+        return Inertia::render('Admin/Pengajuan/Show', [
             'pengajuan' => $item,
             'rencana' => $item->rencanaKegiatan,
             'detail' => $item->rencanaKegiatan?->detailKegiatan,
@@ -150,7 +149,6 @@ class PengajuanKegiatanController extends Controller
 
             $item->save();
 
-            // Sinkronkan status rencana kegiatan
             if ($item->rencanaKegiatan) {
                 if ($newStatus === 'disetujui') {
                     $item->rencanaKegiatan->update(['status' => 'disetujui']);
@@ -161,7 +159,6 @@ class PengajuanKegiatanController extends Controller
                 }
             }
 
-            // Jika disetujui, buatkan record Kegiatan otomatis jika belum ada
             if ($newStatus === 'disetujui' && $request->boolean('terbitkan_kegiatan', true)) {
                 if (!$item->kegiatan) {
                     $rencana = $item->rencanaKegiatan;

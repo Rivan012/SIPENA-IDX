@@ -156,6 +156,6 @@ class AuthTest extends TestCase
         ]);
         $response = $this->actingAs($admin, 'admin')->get('/admin/dashboard');
         $response->assertStatus(200);
-        $response->assertSee('Selamat Datang di Portal SIPENA');
+        $response->assertInertia(fn ($page) => $page->component('Admin/Dashboard'));
     }
 }

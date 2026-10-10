@@ -1,0 +1,113 @@
+<script setup>
+import { Head, Link } from '@inertiajs/vue3';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+
+defineProps({
+    kegiatan: Object,
+});
+</script>
+
+<template>
+    <AdminLayout :title="`${kegiatan.nama_kegiatan} — SIPENA IDX`">
+        <Head :title="kegiatan.nama_kegiatan" />
+
+        <div class="max-w-5xl mx-auto space-y-6">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <Link :href="route('admin.kegiatan.index')" class="hover:text-slate-900">Kegiatan</Link>
+                <span>&rsaquo;</span>
+                <span class="text-slate-800 font-semibold truncate">{{ kegiatan.nama_kegiatan }}</span>
+            </div>
+
+            <!-- Header Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                            {{ kegiatan.kode }}
+                        </span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                            {{ kegiatan.jenis_kegiatan }}
+                        </span>
+                        <span :class="['px-2.5 py-1 rounded-full text-xs font-bold', kegiatan.status_class]">
+                            {{ kegiatan.status_label }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <Link :href="route('admin.kegiatan.edit', kegiatan.id)"
+                              class="px-3.5 py-2 rounded-xl bg-[#680A10] hover:bg-[#54080D] text-white text-xs font-semibold transition shadow-xs">
+                            Edit Kegiatan
+                        </Link>
+                    </div>
+                </div>
+
+                <h1 class="text-2xl font-bold text-slate-900">{{ kegiatan.nama_kegiatan }}</h1>
+                <p class="text-xs text-slate-600 leading-relaxed">{{ kegiatan.deskripsi }}</p>
+
+                <!-- Grid Info Detail -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TANGGAL</span>
+                        <span class="font-bold text-slate-800 mt-1 block">
+                            {{ kegiatan.tanggal ? new Date(kegiatan.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '-' }}
+                        </span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">WAKTU</span>
+                        <span class="font-bold text-slate-800 mt-1 block">
+                            {{ kegiatan.waktu_mulai ? kegiatan.waktu_mulai.substring(0, 5) : '' }} - {{ kegiatan.waktu_selesai ? kegiatan.waktu_selesai.substring(0, 5) : '15:30' }} WIB
+                        </span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">LOKASI</span>
+                        <span class="font-bold text-slate-800 mt-1 block truncate" :title="kegiatan.lokasi">{{ kegiatan.lokasi }}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PESERTA</span>
+                        <span class="font-bold text-slate-800 mt-1 block">
+                            {{ kegiatan.peserta?.length || 0 }} / {{ kegiatan.kuota_peserta || 100 }} Orang
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agenda & Susunan Acara -->
+            <div v-if="kegiatan.agenda?.length" class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <h2 class="text-sm font-bold text-slate-900">Susunan Jadwal &amp; Agenda Acara</h2>
+                <div class="divide-y divide-slate-100 text-xs">
+                    <div v-for="ag in kegiatan.agenda" :key="ag.id" class="py-3 flex items-start gap-3">
+                        <span class="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                            {{ ag.waktu_mulai ? ag.waktu_mulai.substring(0, 5) : '' }} - {{ ag.waktu_selesai ? ag.waktu_selesai.substring(0, 5) : '' }}
+                        </span>
+                        <div>
+                            <div class="font-bold text-slate-900">{{ ag.judul }}</div>
+                            <div class="text-slate-500 mt-0.5">{{ ag.keterangan }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Peserta Terdaftar -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-900">Daftar Peserta Terdaftar ({{ kegiatan.peserta?.length || 0 }})</h2>
+                </div>
+                <div class="divide-y divide-slate-100 text-xs max-h-64 overflow-y-auto">
+                    <div v-for="p in kegiatan.peserta" :key="p.id" class="py-2.5 flex items-center justify-between">
+                        <div>
+                            <div class="font-semibold text-slate-900">{{ p.user?.name || '-' }}</div>
+                            <div class="text-[11px] text-slate-400">{{ p.user?.email || '-' }} &bull; {{ p.user?.no_telepon || '-' }}</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 capitalize">
+                            {{ p.status }}
+                        </span>
+                    </div>
+                    <div v-if="!kegiatan.peserta?.length" class="py-8 text-center text-slate-400">
+                        Belum ada peserta yang mendaftar pada kegiatan ini.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AdminLayout>
+</template>
