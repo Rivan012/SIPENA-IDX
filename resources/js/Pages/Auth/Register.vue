@@ -20,9 +20,11 @@ const submit = () => {
     <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div class="bg-gradient-to-r from-[#680A10] to-[#85131B] p-6 text-white text-center">
-                <img src="/images/idx-logo-icon.png" alt="IDX" class="w-12 h-12 mx-auto mb-2 object-contain bg-white/10 p-1 rounded-xl" />
+                <div class="bg-white p-2 rounded-xl inline-block mb-3 shadow-xs">
+                    <img src="/images/logo.svg" alt="SIPENA IDX" class="h-10 w-auto" />
+                </div>
                 <h1 class="text-xl font-bold">Daftar Akun Peserta</h1>
-                <p class="text-xs text-white/70 mt-1">SIPENA — Edukasi Pasar Modal BEI Bengkulu</p>
+                <p class="text-xs text-rose-100/90 mt-1">Sistem Informasi Pengelolaan Edukasi Pasar Modal</p>
             </div>
 
             <form @submit.prevent="submit" class="p-6 space-y-3.5">

@@ -5,7 +5,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import {
     BoxIcon,
-    CalenderIcon,
+    RefreshIcon,
     CheckIcon,
     DocsIcon,
     TrashIcon
@@ -80,9 +80,10 @@ const executeDelete = () => {
 
             <!-- 4 KPI Cards (TailAdmin Metric Cards) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card 1: Total Kegiatan Pertahun -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Kegiatan</span>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Kegiatan Pertahun</span>
                         <div class="w-10 h-10 rounded-xl bg-red-50 text-[#85131B] flex items-center justify-center border border-red-100">
                             <BoxIcon class="w-5 h-5" />
                         </div>
@@ -93,42 +94,45 @@ const executeDelete = () => {
                     </div>
                 </div>
 
+                <!-- Card 2: Kegiatan Berjalan -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bulan Ini</span>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kegiatan Berjalan</span>
                         <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100">
-                            <CalenderIcon class="w-5 h-5" />
+                            <RefreshIcon class="w-5 h-5" />
                         </div>
                     </div>
                     <div class="mt-4">
-                        <h3 class="text-2xl font-bold text-blue-600 leading-none">{{ stats.bulan_ini }}</h3>
-                        <p class="text-[11px] text-slate-500 mt-1">{{ stats.lokasi_bulan_ini }} Titik Lokasi</p>
+                        <h3 class="text-2xl font-bold text-blue-600 leading-none">{{ stats.berjalan }}</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Sedang berlangsung</p>
                     </div>
                 </div>
 
+                <!-- Card 3: Selesai -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Terlaksana</span>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Selesai</span>
                         <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
                             <CheckIcon class="w-5 h-5" />
                         </div>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-emerald-600 leading-none">{{ stats.selesai }}</h3>
-                        <p class="text-[11px] text-slate-500 mt-1">{{ stats.lpj }} LPJ diunggah</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Telah terlaksana</p>
                     </div>
                 </div>
 
+                <!-- Card 4: Kegiatan Menunggu Approval -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Menunggu Approval</span>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kegiatan Menunggu Approval</span>
                         <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100">
                             <DocsIcon class="w-5 h-5" />
                         </div>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-amber-600 leading-none">{{ stats.menunggu }}</h3>
-                        <p class="text-[11px] text-slate-500 mt-1">Perlu tindakan</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Perlu verifikasi</p>
                     </div>
                 </div>
             </div>

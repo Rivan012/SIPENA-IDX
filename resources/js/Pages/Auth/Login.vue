@@ -20,14 +20,8 @@ const submit = () => {
     <div class="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-800 antialiased selection:bg-[#85131B] selection:text-white">
         <div class="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
             <!-- Brand Mark -->
-            <Link :href="route('home')" class="inline-flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-lg p-1">
-                <div class="w-12 h-12 rounded-lg bg-[#85131B] text-white flex items-center justify-center font-bold text-base tracking-wider border border-red-950 shadow-xs">
-                    IDX
-                </div>
-                <div class="text-left">
-                    <div class="font-extrabold text-xl text-slate-900 tracking-tight leading-none">SIPENA</div>
-                    <div class="text-xs font-semibold text-slate-600 mt-1">KP Bursa Efek Indonesia Bengkulu</div>
-                </div>
+            <Link :href="route('home')" class="inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-xl p-1">
+                <img src="/images/logo.svg" alt="SIPENA IDX Bengkulu" class="h-16 w-auto mx-auto" />
             </Link>
 
             <h1 class="mt-6 text-xl font-bold tracking-tight text-slate-900">

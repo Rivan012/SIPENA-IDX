@@ -32,16 +32,11 @@ class KegiatanController extends Controller
         }
 
         $year = Kegiatan::whereYear('tanggal', now()->year)->exists() ? now()->year : 2025;
-        $month = now()->year == $year ? now()->month : 2;
-        $bulanIni = Kegiatan::whereYear('tanggal', $year)->whereMonth('tanggal', $month);
         $stats = [
             'year' => $year,
             'total' => Kegiatan::whereYear('tanggal', $year)->count(),
-            'rencana' => RencanaKegiatan::whereYear('tanggal_rencana', $year)->count(),
-            'bulan_ini' => (clone $bulanIni)->count(),
-            'lokasi_bulan_ini' => (clone $bulanIni)->distinct()->count('lokasi'),
+            'berjalan' => Kegiatan::where('status', 'berjalan')->count(),
             'selesai' => Kegiatan::where('status', 'selesai')->count(),
-            'lpj' => Kegiatan::where('status', 'selesai')->has('laporanKegiatan')->count(),
             'menunggu' => Kegiatan::where('status', 'menunggu_approval')->count(),
         ];
 

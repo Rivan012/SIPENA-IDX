@@ -58,20 +58,14 @@ const handleLogout = () => {
         >
             <div class="flex-1 overflow-y-auto no-scrollbar">
                 <!-- Brand Header -->
-                <div class="h-16 px-5 border-b border-white/10 flex items-center justify-between">
-                    <Link :href="route('user.dashboard')" class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-white text-[#9F0E0F] flex items-center justify-center font-black text-sm tracking-wider shadow-xs">
-                            IDX
+                <div class="h-16 px-4 border-b border-white/10 flex items-center justify-between">
+                    <Link :href="route('user.dashboard')" class="flex items-center gap-2.5 min-w-0">
+                        <div class="bg-white px-2 py-1 rounded-lg flex items-center shadow-xs shrink-0">
+                            <img src="/images/logo.svg" alt="SIPENA IDX" class="h-7 w-auto" />
                         </div>
-                        <div>
-                            <div class="flex items-center gap-1.5 leading-none">
-                                <span class="text-base font-black tracking-tight text-white">SIPENA</span>
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white/15 text-white border border-white/20 uppercase tracking-wider">
-                                    PESERTA
-                                </span>
-                            </div>
-                            <p class="text-[10px] text-rose-200 font-medium mt-1 leading-none">Edukasi Pasar Modal</p>
-                        </div>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white/15 text-white border border-white/20 uppercase tracking-wider shrink-0">
+                            PESERTA
+                        </span>
                     </Link>
                     <button
                         @click="mobileOpen = false"

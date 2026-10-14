@@ -245,14 +245,8 @@ const closeModal = () => {
         <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
                 <!-- Brand Lockup -->
-                <a href="#beranda" class="flex items-center gap-3.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-lg">
-                    <div class="w-10 h-10 rounded-md bg-[#85131B] text-white flex items-center justify-center font-bold text-sm tracking-wider border border-red-950">
-                        IDX
-                    </div>
-                    <div>
-                        <div class="font-extrabold text-base tracking-tight text-slate-900 leading-none">SIPENA</div>
-                        <div class="text-[11px] font-semibold text-slate-600 mt-1">Perencanaan & Edukasi Bengkulu</div>
-                    </div>
+                <a href="#beranda" class="flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-lg">
+                    <img src="/images/logo.svg" alt="SIPENA — Bursa Efek Indonesia" class="h-10 w-auto" />
                 </a>
 
                 <!-- Desktop Menu -->
@@ -746,10 +740,9 @@ const closeModal = () => {
                     <!-- Brand Column -->
                     <div class="md:col-span-5 space-y-2">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-7 h-7 rounded bg-[#85131B] text-white flex items-center justify-center font-bold text-xs">
-                                IDX
+                            <div class="bg-white px-2.5 py-1.5 rounded-lg inline-flex items-center shadow-xs">
+                                <img src="/images/logo.svg" alt="SIPENA IDX Bengkulu" class="h-8 w-auto" />
                             </div>
-                            <span class="font-bold text-white text-sm">SIPENA IDX Bengkulu</span>
                         </div>
                         <p class="text-slate-400 text-xs leading-relaxed max-w-sm">
                             Sistem Informasi Perencanaan dan Edukasi Pasar Modal pada PT Bursa Efek Indonesia Kantor Perwakilan Bengkulu.
