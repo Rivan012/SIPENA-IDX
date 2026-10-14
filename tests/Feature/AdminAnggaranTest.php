@@ -29,10 +29,10 @@ class AdminAnggaranTest extends TestCase
     public function test_guest_cannot_access_anggaran(): void
     {
         $response = $this->get('/admin/anggaran');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
 
         $response = $this->get('/admin/rencana-kegiatan');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
     }
 
     public function test_admin_can_view_anggaran_index_with_kpi_cards(): void

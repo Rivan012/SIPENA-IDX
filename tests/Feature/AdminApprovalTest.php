@@ -30,10 +30,10 @@ class AdminApprovalTest extends TestCase
     public function test_guest_cannot_access_approval_page(): void
     {
         $response = $this->get('/admin/pengajuan');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
 
         $response = $this->get('/admin/approval');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
     }
 
     public function test_admin_can_view_approval_index(): void

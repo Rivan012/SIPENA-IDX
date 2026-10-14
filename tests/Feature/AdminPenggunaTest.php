@@ -37,7 +37,7 @@ class AdminPenggunaTest extends TestCase
     public function test_guest_cannot_access_monitoring_and_user_kegiatan(): void
     {
         $response = $this->get('/admin/pengguna');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
 
         $response = $this->get('/kegiatan');
         $response->assertRedirect('/login');

@@ -27,7 +27,7 @@ class AuthTest extends TestCase
     public function test_admin_can_view_login_page(): void
     {
         $response = $this->get('/admin/login');
-        $response->assertStatus(200);
+        $response->assertRedirect('/login');
     }
 
     public function test_user_can_register(): void
@@ -78,6 +78,24 @@ class AuthTest extends TestCase
         $this->assertAuthenticatedAs($admin, 'admin');
     }
 
+    public function test_admin_can_login_via_unified_login_page(): void
+    {
+        $admin = Admin::create([
+            'name' => 'Admin Unified',
+            'email' => 'admin_unified@test.com',
+            'password' => Hash::make('password123'),
+            'jabatan' => 'Staff',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'admin_unified@test.com',
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect('/admin/dashboard');
+        $this->assertAuthenticatedAs($admin, 'admin');
+    }
+
     public function test_user_can_logout(): void
     {
         $user = User::factory()->create();
@@ -98,7 +116,7 @@ class AuthTest extends TestCase
         $this->actingAs($admin, 'admin');
 
         $response = $this->post('/logout');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
         $this->assertGuest('admin');
     }
 

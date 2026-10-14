@@ -24,7 +24,14 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
+        $remember = $request->boolean('remember');
+
+        if (Auth::guard('admin')->attempt($credentials, $remember)) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
             $request->session()->regenerate();
             return redirect()->intended(route('user.dashboard'));
         }
@@ -59,24 +66,14 @@ class AuthController extends Controller
         return redirect()->route('user.dashboard');
     }
 
-    public function showAdminLoginForm(): Response
+    public function showAdminLoginForm(): RedirectResponse
     {
-        return Inertia::render('Auth/AdminLogin');
+        return redirect()->route('login');
     }
 
     public function adminLogin(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        if (Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('admin.dashboard'));
-        }
-
-        return back()->withErrors(['email' => 'Kredensial Admin tidak cocok.'])->onlyInput('email');
+        return $this->login($request);
     }
 
     public function showForgotPasswordForm(): Response
@@ -136,14 +133,13 @@ class AuthController extends Controller
     {
         if (Auth::guard('admin')->check()) {
             Auth::guard('admin')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-            return redirect()->route('admin.login');
+        } else {
+            Auth::guard('web')->logout();
         }
 
-        Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }

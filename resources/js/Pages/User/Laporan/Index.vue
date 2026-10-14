@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
+import Pagination from '@/Components/Pagination.vue';
 
 defineProps({
     laporanList: Object,
@@ -60,18 +61,14 @@ defineProps({
                     </table>
                 </div>
 
-                <div v-if="laporanList.links?.length > 3" class="p-3.5 border-t border-slate-200 bg-slate-50/50 flex justify-end gap-1">
-                    <template v-for="(link, i) in laporanList.links" :key="i">
-                        <Link v-if="link.url"
-                              :href="link.url"
-                              v-html="link.label"
-                              :class="[
-                                  'px-3 py-1.5 rounded-xl text-xs font-semibold transition',
-                                  link.active ? 'bg-[#680A10] text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                              ]" />
-                        <span v-else v-html="link.label" class="px-3 py-1.5 text-slate-300 text-xs"></span>
-                    </template>
-                </div>
+                <!-- Pagination -->
+                <Pagination
+                    :links="laporanList.links"
+                    :from="laporanList.from"
+                    :to="laporanList.to"
+                    :total="laporanList.total"
+                    item-label="laporan"
+                />
             </div>
         </div>
     </UserLayout>

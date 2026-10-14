@@ -29,7 +29,7 @@ class AdminKalenderTest extends TestCase
     public function test_guest_cannot_access_kalender(): void
     {
         $response = $this->get('/admin/kalender');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
     }
 
     public function test_admin_can_view_kalender_page(): void

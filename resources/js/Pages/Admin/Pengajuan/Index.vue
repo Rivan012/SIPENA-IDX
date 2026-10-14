@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import Pagination from '@/Components/Pagination.vue';
 
 const props = defineProps({
     pengajuanList: Object,
@@ -198,21 +199,13 @@ const submitDecision = () => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="pengajuanList.links?.length > 3" class="p-3.5 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between text-xs">
-                    <span class="text-slate-500">Menampilkan {{ pengajuanList.from || 0 }} - {{ pengajuanList.to || 0 }} dari {{ pengajuanList.total || 0 }}</span>
-                    <div class="flex items-center gap-1">
-                        <template v-for="(link, i) in pengajuanList.links" :key="i">
-                            <Link v-if="link.url"
-                                  :href="link.url"
-                                  v-html="link.label"
-                                  :class="[
-                                      'px-2.5 py-1 rounded-lg text-xs font-semibold transition',
-                                      link.active ? 'bg-[#680A10] text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                                  ]" />
-                            <span v-else v-html="link.label" class="px-2.5 py-1 text-slate-300 text-xs"></span>
-                        </template>
-                    </div>
-                </div>
+                <Pagination
+                    :links="pengajuanList.links"
+                    :from="pengajuanList.from"
+                    :to="pengajuanList.to"
+                    :total="pengajuanList.total"
+                    item-label="usulan"
+                />
             </div>
         </div>
 

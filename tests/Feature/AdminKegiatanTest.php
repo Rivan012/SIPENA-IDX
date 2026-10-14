@@ -28,7 +28,7 @@ class AdminKegiatanTest extends TestCase
     public function test_guest_cannot_access_kegiatan(): void
     {
         $response = $this->get('/admin/kegiatan');
-        $response->assertRedirect('/admin/login');
+        $response->assertRedirect('/login');
     }
 
     public function test_admin_can_view_kegiatan_index(): void

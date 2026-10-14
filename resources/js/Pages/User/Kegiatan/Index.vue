@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
+import Pagination from '@/Components/Pagination.vue';
 
 const props = defineProps({
     kegiatanList: Object,
@@ -153,18 +154,13 @@ const batal = (keg) => {
             </div>
 
             <!-- Pagination -->
-            <div v-if="kegiatanList.links?.length > 3" class="pt-4 flex items-center justify-center gap-1">
-                <template v-for="(link, i) in kegiatanList.links" :key="i">
-                    <Link v-if="link.url"
-                          :href="link.url"
-                          v-html="link.label"
-                          :class="[
-                              'px-3 py-1.5 rounded-xl text-xs font-semibold transition',
-                              link.active ? 'bg-[#680A10] text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                          ]" />
-                    <span v-else v-html="link.label" class="px-3 py-1.5 text-slate-300 text-xs"></span>
-                </template>
-            </div>
+            <Pagination
+                :links="kegiatanList.links"
+                :from="kegiatanList.from"
+                :to="kegiatanList.to"
+                :total="kegiatanList.total"
+                item-label="kegiatan"
+            />
         </div>
     </UserLayout>
 </template>

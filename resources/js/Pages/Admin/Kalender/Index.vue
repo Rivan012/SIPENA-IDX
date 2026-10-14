@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/Icons';
 
 const props = defineProps({
     year: Number,
@@ -65,15 +66,17 @@ const selectEvent = (event) => {
                     <!-- Navigasi Bulan -->
                     <div class="flex items-center bg-white rounded-xl border border-slate-200 p-1 shadow-xs">
                         <Link :href="route('admin.kalender.index', prevMonthParams)"
-                              class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
-                            &larr;
+                              class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                              title="Bulan Sebelumnya">
+                            <ChevronLeftIcon class="w-4 h-4" />
                         </Link>
                         <span class="px-3 text-xs font-bold text-slate-800">
                             {{ currentMonthName }}
                         </span>
                         <Link :href="route('admin.kalender.index', nextMonthParams)"
-                              class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition">
-                            &rarr;
+                              class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
+                              title="Bulan Selanjutnya">
+                            <ChevronRightIcon class="w-4 h-4" />
                         </Link>
                     </div>
 
