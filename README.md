@@ -135,4 +135,4 @@ SIPENA-IDX/
 ---
 
 ## 📄 Lisensi
-Hak Cipta © 2026 PT Bursa Efek Indonesia — Kantor Perwakilan Bengkulu.
+Hak Cipta © 2026 PT Bursa Efek Indonesia — Kantor Perwakilan Bengkulu & Team Pengembang PSA 5B
