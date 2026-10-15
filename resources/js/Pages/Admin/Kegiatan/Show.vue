@@ -24,7 +24,7 @@ defineProps({
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <span class="font-mono text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                            {{ kegiatan.kode }}
+                            {{ kegiatan.nama_kegiatan }}
                         </span>
                         <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
                             {{ kegiatan.jenis_kegiatan }}

@@ -15,7 +15,7 @@ class Kegiatan extends Model
     public const STATUS = [
         'menunggu_approval' => ['Menunggu Approval', 'bg-amber-50 text-amber-700'],
         'disetujui' => ['Disetujui', 'bg-emerald-50 text-emerald-700'],
-        'dipublikasikan' => ['Dipublikasikan', 'bg-sky-50 text-sky-700'],
+        'dipublikasikan' => ['Terjadwal', 'bg-sky-50 text-sky-700'],
         'berlangsung' => ['Berlangsung', 'bg-rose-50 text-rose-700'],
         'selesai' => ['Selesai', 'bg-slate-100 text-slate-700'],
         'dibatalkan' => ['Dibatalkan', 'bg-red-100 text-red-800'],

@@ -18,22 +18,15 @@ const submit = () => {
     <Head title="Masuk — SIPENA IDX Bengkulu" />
 
     <div class="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-800 antialiased selection:bg-[#85131B] selection:text-white">
-        <div class="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
-            <!-- Brand Mark -->
-            <Link :href="route('home')" class="inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-xl p-1">
-                <img src="/images/logo.svg" alt="SIPENA IDX Bengkulu" class="h-16 w-auto mx-auto" />
-            </Link>
-
-            <h1 class="mt-6 text-xl font-bold tracking-tight text-slate-900">
-                Masuk ke Sistem
-            </h1>
-            <p class="mt-1 text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-                Satu akses masuk untuk Peserta Edukasi dan Administrator BEI Bengkulu.
-            </p>
-        </div>
 
         <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
             <div class="bg-white py-8 px-6 sm:px-8 border border-slate-300 rounded-xl shadow-xs">
+                <div class="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
+                    <!-- Brand Mark -->
+                    <Link :href="route('home')" class="inline-flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#85131B] rounded-xl p-1">
+                        <img src="/images/logo.svg" alt="SIPENA IDX Bengkulu" class="h-16 w-auto mx-auto" />
+                    </Link>
+                </div>
                 <form @submit.prevent="submit" class="space-y-4">
                     <!-- General Error Alert -->
                     <div v-if="form.errors.email" class="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800">

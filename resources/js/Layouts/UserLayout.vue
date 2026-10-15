@@ -58,19 +58,16 @@ const handleLogout = () => {
         >
             <div class="flex-1 overflow-y-auto no-scrollbar">
                 <!-- Brand Header -->
-                <div class="h-16 px-4 border-b border-white/10 flex items-center justify-between">
-                    <Link :href="route('user.dashboard')" class="flex items-center gap-2.5 min-w-0">
-                        <div class="bg-white px-2 py-1 rounded-lg flex items-center shadow-xs shrink-0">
-                            <img src="/images/logo.svg" alt="SIPENA IDX" class="h-7 w-auto" />
+                <div class="p-4 border-b border-white/10 flex items-center justify-between gap-2">
+                    <Link :href="route('user.dashboard')" class="block flex-1 min-w-0">
+                        <div class="w-full bg-white rounded-xl p-3 shadow-xs flex items-center justify-center hover:bg-slate-50 transition-colors">
+                            <img src="/images/logo.svg" alt="SIPENA IDX" class="w-full h-auto object-contain" />
                         </div>
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-white/15 text-white border border-white/20 uppercase tracking-wider shrink-0">
-                            PESERTA
-                        </span>
                     </Link>
                     <button
                         @click="mobileOpen = false"
                         type="button"
-                        class="md:hidden text-rose-200 hover:text-white p-1 rounded-md"
+                        class="md:hidden text-rose-200 hover:text-white p-1 rounded-md shrink-0"
                         aria-label="Tutup menu navigasi"
                     >
                         ✕
@@ -189,7 +186,7 @@ const handleLogout = () => {
                         </div>
                         <div class="leading-tight truncate">
                             <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Peserta' }}</div>
-                            <div class="text-[10px] text-rose-200 truncate">{{ authUser.email || 'peserta@idx.co.id' }}</div>
+                            <div class="text-[10px] text-rose-200 truncate font-medium">Peserta</div>
                         </div>
                     </div>
                     <button
@@ -258,7 +255,7 @@ const handleLogout = () => {
                         </div>
                         <div class="hidden sm:block text-left leading-tight">
                             <div class="text-xs font-bold text-slate-900">{{ authUser.name || 'Peserta' }}</div>
-                            <div class="text-[10px] text-slate-500">{{ authUser.email || 'peserta@idx.co.id' }}</div>
+                            <div class="text-[10px] font-semibold text-[#85131B]">Peserta</div>
                         </div>
                     </div>
                 </div>

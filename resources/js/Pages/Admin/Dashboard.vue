@@ -100,23 +100,6 @@ defineProps({
                         <p class="text-[11px] text-slate-500 mt-1">Peserta terdaftar</p>
                     </div>
                 </div>
-
-                <!-- Card 4: Pagu RKAP -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pagu RKAP</span>
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100">
-                            <DocsIcon class="w-5 h-5" />
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="text-base font-bold text-slate-900 leading-none truncate" :title="metrics.pagu_anggaran">
-                            {{ metrics.pagu_anggaran }}
-                        </h3>
-                        <p class="text-[11px] text-slate-500 mt-1">Alokasi pagu tahunan</p>
-                    </div>
-                </div>
-
                 <!-- Card 5: Realisasi Biaya -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
@@ -130,20 +113,6 @@ defineProps({
                             {{ metrics.realisasi_anggaran }}
                         </h3>
                         <p class="text-[11px] text-slate-500 mt-1">Anggaran terserap</p>
-                    </div>
-                </div>
-
-                <!-- Card 6: Serapan RKAP -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">% Serapan</span>
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-[#85131B] flex items-center justify-center border border-rose-100">
-                            <PieChartIcon class="w-5 h-5" />
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="text-2xl font-bold text-[#85131B] leading-none">{{ metrics.persentase_realisasi }}%</h3>
-                        <p class="text-[11px] text-slate-500 mt-1">Tingkat efisiensi biaya</p>
                     </div>
                 </div>
             </div>

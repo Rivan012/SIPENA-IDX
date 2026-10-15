@@ -188,7 +188,7 @@ const executeDelete = () => {
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-4">KODE & PROGRAM</th>
+                                <th class="py-3 px-4">NAMA KEGIATAN</th>
                                 <th class="py-3 px-4">KATEGORI</th>
                                 <th class="py-3 px-4">JADWAL</th>
                                 <th class="py-3 px-4">LOKASI</th>
