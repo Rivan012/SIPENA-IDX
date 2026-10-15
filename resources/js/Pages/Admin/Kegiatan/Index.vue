@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 import {
     BoxIcon,
     RefreshIcon,
@@ -30,22 +31,17 @@ const handleFilter = () => {
     }, { preserveState: true });
 };
 
-const showDeleteModal = ref(false);
-const deleteTarget = ref(null);
-
-const confirmDelete = (k) => {
-    deleteTarget.value = k;
-    showDeleteModal.value = true;
-};
-
-const executeDelete = () => {
-    if (deleteTarget.value) {
-        router.delete(route('admin.kegiatan.destroy', deleteTarget.value.id), {
-            onFinish: () => {
-                showDeleteModal.value = false;
-                deleteTarget.value = null;
-            },
-        });
+const confirmDelete = async (k) => {
+    const ok = await confirmDialog({
+        title: 'Hapus Kegiatan Ini?',
+        text: `Kegiatan "${k.nama_kegiatan}" akan dihapus secara permanen dari sistem.`,
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        icon: 'warning',
+        confirmButtonColor: '#DC2626',
+    });
+    if (ok) {
+        router.delete(route('admin.kegiatan.destroy', k.id));
     }
 };
 </script>
@@ -193,6 +189,7 @@ const executeDelete = () => {
                                 <th class="py-3 px-4">JADWAL</th>
                                 <th class="py-3 px-4">LOKASI</th>
                                 <th class="py-3 px-4 text-center">PESERTA</th>
+                                <th class="py-3 px-4 text-center">MITRA</th>
                                 <th class="py-3 px-4 text-center">STATUS</th>
                                 <th class="py-3 px-4 text-right">AKSI</th>
                             </tr>
@@ -220,6 +217,9 @@ const executeDelete = () => {
                                 <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                     <span class="font-bold text-slate-800">{{ k.peserta_count || 0 }}</span>
                                     <span class="text-slate-400 text-[10px]"> / {{ k.kuota_peserta || '-' }}</span>
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-600 max-w-[200px] truncate" :title="k.mitra || '-'">
+                                    {{ k.mitra || '-' }}
                                 </td>
                                 <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                     <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold border', k.status_class]">
@@ -270,37 +270,6 @@ const executeDelete = () => {
                     :total="kegiatan.total"
                     item-label="kegiatan"
                 />
-            </div>
-        </div>
-
-        <!-- Delete Modal -->
-        <div v-if="showDeleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
-                    <TrashIcon class="w-5 h-5" />
-                </div>
-                <div class="text-center">
-                    <h3 class="text-base font-bold text-slate-900">Hapus Kegiatan Ini?</h3>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Kegiatan <strong>{{ deleteTarget?.nama_kegiatan }}</strong> akan dihapus secara permanen.
-                    </p>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button
-                        type="button"
-                        @click="showDeleteModal = false"
-                        class="w-1/2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        @click="executeDelete"
-                        class="w-1/2 py-2 rounded-xl bg-red-600 text-xs font-semibold text-white hover:bg-red-700 cursor-pointer"
-                    >
-                        Ya, Hapus
-                    </button>
-                </div>
             </div>
         </div>
     </AdminLayout>

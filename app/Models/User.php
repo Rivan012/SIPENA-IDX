@@ -42,6 +42,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function kegiatanDiajukan()
+    {
+        return $this->hasMany(Kegiatan::class, 'user_id');
+    }
+
     public function notifikasi()
     {
         return $this->hasMany(Notifikasi::class, 'user_id');

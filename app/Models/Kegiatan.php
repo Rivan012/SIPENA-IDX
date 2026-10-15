@@ -39,6 +39,7 @@ class Kegiatan extends Model
     }
 
     protected $fillable = [
+        'user_id',
         'pengajuan_kegiatan_id',
         'rencana_kegiatan_id',
         'nama_kegiatan',
@@ -48,6 +49,7 @@ class Kegiatan extends Model
         'waktu_mulai',
         'waktu_selesai',
         'lokasi',
+        'mitra',
         'kuota_peserta',
         'status',
         'google_calendar_event_id',
@@ -59,6 +61,11 @@ class Kegiatan extends Model
             'tanggal' => 'date',
             'kuota_peserta' => 'integer',
         ];
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function pengajuanKegiatan()

@@ -40,6 +40,7 @@ class AdminKegiatanTest extends TestCase
             'tanggal' => now()->addDays(5)->format('Y-m-d'),
             'waktu_mulai' => '09:00',
             'lokasi' => 'GI BEI UNIB',
+            'mitra' => 'PT BEI',
             'status' => 'dipublikasikan',
         ]);
 
@@ -47,6 +48,7 @@ class AdminKegiatanTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('SPM Level 1 Bengkulu');
         $response->assertSee('GI BEI UNIB');
+        $response->assertSee('PT BEI');
     }
 
     public function test_admin_can_view_create_page(): void
@@ -66,6 +68,7 @@ class AdminKegiatanTest extends TestCase
             'waktu_mulai' => '13:30',
             'waktu_selesai' => '16:00',
             'lokasi' => 'Aula FEB UMB',
+            'mitra' => 'Mandiri Sekuritas',
             'kuota_peserta' => 100,
             'status' => 'dipublikasikan',
         ];
@@ -75,6 +78,7 @@ class AdminKegiatanTest extends TestCase
         $this->assertDatabaseHas('kegiatan', [
             'nama_kegiatan' => 'Workshop Saham Syariah',
             'lokasi' => 'Aula FEB UMB',
+            'mitra' => 'Mandiri Sekuritas',
             'status' => 'dipublikasikan',
         ]);
     }

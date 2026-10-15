@@ -7,6 +7,7 @@ use App\Models\Kegiatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class AdminPenggunaTest extends TestCase
@@ -14,6 +15,7 @@ class AdminPenggunaTest extends TestCase
     use RefreshDatabase;
 
     private Admin $admin;
+
     private User $user;
 
     protected function setUp(): void
@@ -47,7 +49,7 @@ class AdminPenggunaTest extends TestCase
     {
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/pengguna');
         $response->assertStatus(200);
-        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Admin/Monitoring/Index')
             ->has('users.data', 1)
             ->where('users.data.0.name', 'Peserta Ujian')
@@ -61,9 +63,46 @@ class AdminPenggunaTest extends TestCase
         $this->assertTrue(str_contains($response->headers->get('content-type'), 'text/csv'));
     }
 
-    public function test_user_can_view_kegiatan_and_dashboard(): void
+    public function test_dashboard_shows_maker_proposals_grouped_by_status(): void
+    {
+        foreach (['menunggu_approval', 'disetujui', 'dipublikasikan', 'berlangsung', 'ditolak', 'dibatalkan', 'selesai'] as $status) {
+            Kegiatan::create([
+                'user_id' => $this->user->id,
+                'nama_kegiatan' => "Kegiatan {$status}",
+                'deskripsi' => 'Deskripsi kegiatan',
+                'jenis_kegiatan' => 'Workshop',
+                'tanggal' => now()->addDays(5)->format('Y-m-d'),
+                'waktu_mulai' => '09:00',
+                'lokasi' => 'GI BEI UNIB',
+                'status' => $status,
+            ]);
+        }
+
+        Kegiatan::create([
+            'user_id' => User::factory()->create()->id,
+            'nama_kegiatan' => 'Proposal Maker Lain',
+            'deskripsi' => 'Bukan proposal user ini',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(5)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'GI BEI UNIB',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->user, 'web')->get('/dashboard');
+
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/Dashboard')
+            ->where('proposedCount', 1)
+            ->where('otherStatusCount', 5)
+            ->where('completedCount', 1)
+        );
+    }
+
+    public function test_user_can_view_owned_proposals_and_dashboard(): void
     {
         $kegiatan = Kegiatan::create([
+            'user_id' => $this->user->id,
             'nama_kegiatan' => 'SPM Batch Terbuka',
             'deskripsi' => 'Deskripsi kegiatan SPM',
             'jenis_kegiatan' => 'SPM',
@@ -76,18 +115,91 @@ class AdminPenggunaTest extends TestCase
 
         $response = $this->actingAs($this->user, 'web')->get('/kegiatan');
         $response->assertStatus(200);
-        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-            ->component('User/Kegiatan/Index')
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
             ->has('kegiatanList.data', 1)
             ->where('kegiatanList.data.0.nama_kegiatan', 'SPM Batch Terbuka')
         );
 
+        $legacyResponse = $this->actingAs($this->user, 'web')->get('/kegiatan-saya');
+        $legacyResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->has('kegiatanList.data', 1)
+        );
+
         $responseDetail = $this->actingAs($this->user, 'web')->get("/kegiatan/{$kegiatan->id}");
         $responseDetail->assertStatus(200);
-        $responseDetail->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        $responseDetail->assertInertia(fn (AssertableInertia $page) => $page
             ->component('User/Kegiatan/Show')
             ->where('kegiatan.nama_kegiatan', 'SPM Batch Terbuka')
         );
+    }
+
+    public function test_user_can_submit_activity_proposal_as_maker(): void
+    {
+        $response = $this->actingAs($this->user, 'web')->post('/kegiatan/ajukan', [
+            'nama_kegiatan' => 'Workshop Investasi Mandiri',
+            'deskripsi' => 'Kegiatan proposal baru oleh maker',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(7)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'waktu_selesai' => '12:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'mitra' => 'Peserta Ujian',
+            'kuota_peserta' => 80,
+        ]);
+
+        $response->assertRedirect('/kegiatan');
+        $this->assertDatabaseHas('kegiatan', [
+            'nama_kegiatan' => 'Workshop Investasi Mandiri',
+            'mitra' => 'Peserta Ujian',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $catalogResponse = $this->actingAs($this->user, 'web')->get('/kegiatan');
+        $catalogResponse->assertStatus(200);
+        $catalogResponse->assertSee('Workshop Investasi Mandiri');
+    }
+
+    public function test_user_can_update_and_delete_own_activity_proposal(): void
+    {
+        $proposal = Kegiatan::create([
+            'user_id' => $this->user->id,
+            'nama_kegiatan' => 'Proposal Awal',
+            'deskripsi' => 'Deskripsi awal',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(9)->format('Y-m-d'),
+            'waktu_mulai' => '08:00',
+            'lokasi' => 'Rumah Komunitas',
+            'mitra' => 'Maker Test',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $editResponse = $this->actingAs($this->user, 'web')->get("/kegiatan/{$proposal->id}/edit");
+        $editResponse->assertStatus(200);
+
+        $updateResponse = $this->actingAs($this->user, 'web')->put("/kegiatan/{$proposal->id}", [
+            'nama_kegiatan' => 'Proposal Revisi',
+            'deskripsi' => 'Deskripsi revisi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'waktu_selesai' => '11:00',
+            'lokasi' => 'Seminar Hall',
+            'mitra' => 'Maker Test',
+            'kuota_peserta' => 40,
+        ]);
+
+        $updateResponse->assertRedirect("/kegiatan/{$proposal->id}");
+        $this->assertDatabaseHas('kegiatan', [
+            'id' => $proposal->id,
+            'nama_kegiatan' => 'Proposal Revisi',
+            'lokasi' => 'Seminar Hall',
+        ]);
+
+        $deleteResponse = $this->actingAs($this->user, 'web')->delete("/kegiatan/{$proposal->id}");
+        $deleteResponse->assertRedirect('/kegiatan-saya');
+        $this->assertDatabaseMissing('kegiatan', ['id' => $proposal->id]);
     }
 
     public function test_user_can_register_and_cancel_kegiatan(): void
@@ -109,10 +221,12 @@ class AdminPenggunaTest extends TestCase
         $responseDaftar->assertSessionHas('success');
         $this->assertTrue($kegiatan->fresh()->peserta()->where('user_id', $this->user->id)->exists());
 
-        // Buka Kegiatan Saya
+        // Proposal page stays separate from participant registration records.
         $responseSaya = $this->actingAs($this->user, 'web')->get('/kegiatan-saya');
-        $responseSaya->assertStatus(200);
-        $responseSaya->assertSee('Edukasi Saham Pemula');
+        $responseSaya->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->has('kegiatanList.data', 0)
+        );
 
         // Batalkan
         $responseBatal = $this->actingAs($this->user, 'web')

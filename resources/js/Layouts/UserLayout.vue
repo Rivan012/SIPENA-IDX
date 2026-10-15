@@ -1,22 +1,23 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Link, usePage, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import {
     LayoutDashboardIcon,
     BoxIcon,
     Calendar2Line,
     DocsIcon,
     BellIcon,
-    MenuIcon,
+    UserCircleIcon,
     LogoutIcon,
+    MenuIcon,
     ChevronRightIcon,
-    UserCircleIcon
 } from '@/Icons';
+import { confirmDialog, showToast } from '@/Utils/sweetalert';
 
 defineProps({
     title: {
         type: String,
-        default: 'Portal Peserta',
+        default: 'Portal Maker',
     },
 });
 
@@ -27,6 +28,19 @@ const authUser = computed(() => page.props.auth?.user || {});
 const unreadNotif = computed(() => page.props.userUnreadCount || 0);
 const flash = computed(() => page.props.flash || {});
 
+watch(() => flash.value.success, (msg) => {
+    if (msg) showToast(msg, 'success');
+});
+
+watch(() => flash.value.error, (msg) => {
+    if (msg) showToast(msg, 'error');
+});
+
+onMounted(() => {
+    if (flash.value?.success) showToast(flash.value.success, 'success');
+    if (flash.value?.error) showToast(flash.value.error, 'error');
+});
+
 const isCurrent = (name) => {
     try {
         return route().current(name);
@@ -35,8 +49,17 @@ const isCurrent = (name) => {
     }
 };
 
-const handleLogout = () => {
-    router.post(route('logout'));
+const handleLogout = async () => {
+    const ok = await confirmDialog({
+        title: 'Keluar dari Akun?',
+        text: 'Apakah Anda yakin ingin keluar dari akun peserta SIPENA IDX?',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal',
+        icon: 'warning',
+    });
+    if (ok) {
+        router.post(route('logout'));
+    }
 };
 </script>
 
@@ -90,35 +113,35 @@ const handleLogout = () => {
                                 ]"
                             >
                                 <LayoutDashboardIcon class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Dashboard Peserta</span>
+                                <span class="truncate">Dashboard Maker</span>
                             </Link>
 
-                            <!-- Katalog Kegiatan -->
                             <Link
                                 :href="route('user.kegiatan.index')"
                                 :class="[
                                     'menu-item',
-                                    isCurrent('user.kegiatan.*') ? 'menu-item-active' : 'menu-item-inactive'
-                                ]"
-                            >
-                                <BoxIcon class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Katalog Kegiatan</span>
-                            </Link>
-
-                            <!-- Kegiatan Saya -->
-                            <Link
-                                :href="route('user.kegiatan-saya')"
-                                :class="[
-                                    'menu-item',
-                                    isCurrent('user.kegiatan-saya*') ? 'menu-item-active' : 'menu-item-inactive'
+                                    isCurrent('user.kegiatan.index') || isCurrent('user.kegiatan-saya')
+                                        ? 'menu-item-active'
+                                        : 'menu-item-inactive'
                                 ]"
                             >
                                 <Calendar2Line class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Kegiatan Terdaftar</span>
+                                <span class="truncate">Proposal Saya</span>
+                            </Link>
+
+                            <Link
+                                :href="route('user.kegiatan.create')"
+                                :class="[
+                                    'menu-item',
+                                    isCurrent('user.kegiatan.create') ? 'menu-item-active' : 'menu-item-inactive'
+                                ]"
+                            >
+                                <DocsIcon class="w-4 h-4 shrink-0" />
+                                <span class="truncate">Ajukan Kegiatan</span>
                             </Link>
 
                             <!-- Laporan Edukasi -->
-                            <Link
+                            <!-- <Link
                                 :href="route('user.laporan.index')"
                                 :class="[
                                     'menu-item',
@@ -127,7 +150,7 @@ const handleLogout = () => {
                             >
                                 <DocsIcon class="w-4 h-4 shrink-0" />
                                 <span class="truncate">Laporan Pelaksanaan</span>
-                            </Link>
+                            </Link> -->
                         </nav>
                     </div>
 
@@ -185,8 +208,8 @@ const handleLogout = () => {
                             {{ (authUser.name || 'U').substring(0, 2) }}
                         </div>
                         <div class="leading-tight truncate">
-                            <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Peserta' }}</div>
-                            <div class="text-[10px] text-rose-200 truncate font-medium">Peserta</div>
+                            <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Maker' }}</div>
+                            <div class="text-[10px] text-rose-200 truncate font-medium">Maker</div>
                         </div>
                     </div>
                     <button

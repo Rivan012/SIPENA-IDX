@@ -36,3 +36,40 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+/* SweetAlert2 IDX Theme Customization */
+.swal2-popup {
+    font-family: var(--font-sans) !important;
+    border-radius: 1.25rem !important;
+}
+
+.swal2-styled.swal2-confirm {
+    background-color: #9F0E0F !important;
+    border-radius: 0.75rem !important;
+    font-weight: 700 !important;
+    font-size: 0.8125rem !important;
+    padding: 0.625rem 1.25rem !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.swal2-styled.swal2-confirm:focus {
+    box-shadow: 0 0 0 3px rgba(159, 14, 15, 0.3) !important;
+}
+
+.swal2-styled.swal2-cancel {
+    background-color: #64748B !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8125rem !important;
+    padding: 0.625rem 1.25rem !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.swal2-styled.swal2-cancel:focus {
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.3) !important;
+}
+
+.swal2-timer-progress-bar {
+    background: #9F0E0F !important;
+}
+

@@ -96,6 +96,24 @@ class AdminKalenderTest extends TestCase
             ->component('Admin/Kalender/Index')
             ->has('eventsClient.0')
             ->where('eventsClient.0.nama_kegiatan', 'Simulasi Saham Digital')
+            ->where('filters.view', 'bulan')
+        );
+    }
+
+    public function test_admin_can_filter_kalender_by_view_mode(): void
+    {
+        $responseMinggu = $this->actingAs($this->admin, 'admin')->get('/admin/kalender?view=minggu');
+        $responseMinggu->assertStatus(200);
+        $responseMinggu->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Kalender/Index')
+            ->where('filters.view', 'minggu')
+        );
+
+        $responseList = $this->actingAs($this->admin, 'admin')->get('/admin/kalender?view=list');
+        $responseList->assertStatus(200);
+        $responseList->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Kalender/Index')
+            ->where('filters.view', 'list')
         );
     }
 }

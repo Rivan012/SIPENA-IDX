@@ -21,6 +21,7 @@ class KegiatanController extends Controller
             ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q
                 ->where('nama_kegiatan', 'like', "%{$s}%")
                 ->orWhere('lokasi', 'like', "%{$s}%")
+                ->orWhere('mitra', 'like', "%{$s}%")
                 ->orWhere('jenis_kegiatan', 'like', "%{$s}%")))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->kategori, fn ($q, $k) => $q->where('jenis_kegiatan', $k))
@@ -98,6 +99,7 @@ class KegiatanController extends Controller
             'waktu_mulai' => 'required',
             'waktu_selesai' => 'nullable',
             'lokasi' => 'required|string|max:255',
+            'mitra' => 'nullable|string|max:255',
             'kuota_peserta' => 'nullable|integer|min:1',
             'status' => ['required', Rule::in(array_keys(Kegiatan::STATUS))],
             'rencana_kegiatan_id' => ['nullable', 'exists:rencana_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
@@ -119,7 +121,7 @@ class KegiatanController extends Controller
     {
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Kode', 'Nama Kegiatan', 'Kategori', 'Tanggal', 'Waktu', 'Lokasi', 'Target Peserta', 'Peserta', 'Status']);
+            fputcsv($out, ['Kode', 'Nama Kegiatan', 'Kategori', 'Tanggal', 'Waktu', 'Lokasi', 'Mitra', 'Target Peserta', 'Peserta', 'Status']);
             foreach ($rows as $k) {
                 fputcsv($out, [
                     $k->kode,
@@ -128,6 +130,7 @@ class KegiatanController extends Controller
                     $k->tanggal?->format('Y-m-d'),
                     substr($k->waktu_mulai, 0, 5),
                     $k->lokasi,
+                    $k->mitra,
                     $k->kuota_peserta,
                     $k->peserta_count,
                     $k->status_label,

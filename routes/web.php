@@ -4,10 +4,11 @@ use App\Http\Controllers\Admin as AdminCtrl;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\User as UserCtrl;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // Public
 Route::get('/', function () {
-    return \Inertia\Inertia::render('Welcome');
+    return Inertia::render('Welcome');
 })->name('home');
 
 // Guest / Authentication
@@ -35,7 +36,13 @@ Route::middleware('auth:web')->name('user.')->group(function () {
     Route::get('/dashboard', [UserCtrl\DashboardController::class, 'index'])->name('dashboard');
 
     // Kegiatan
-    Route::get('/kegiatan', [UserCtrl\KegiatanController::class, 'index'])->name('kegiatan.index');
+    Route::get('/kegiatan/ajukan', [UserCtrl\KegiatanController::class, 'create'])->name('kegiatan.create');
+    Route::post('/kegiatan/ajukan', [UserCtrl\KegiatanController::class, 'storeProposal'])->name('kegiatan.store');
+    Route::get('/kegiatan', [UserCtrl\KegiatanSayaController::class, 'index'])->name('kegiatan.index');
+    Route::get('/kegiatan/{kegiatan}/edit', [UserCtrl\KegiatanController::class, 'edit'])->name('kegiatan.edit');
+    Route::put('/kegiatan/{kegiatan}', [UserCtrl\KegiatanController::class, 'update'])->name('kegiatan.update');
+    Route::delete('/kegiatan/{kegiatan}', [UserCtrl\KegiatanController::class, 'destroy'])->name('kegiatan.destroy');
+    Route::patch('/kegiatan/{kegiatan}/batalkan', [UserCtrl\KegiatanController::class, 'cancel'])->name('kegiatan.cancel');
     Route::get('/kegiatan/{kegiatan}', [UserCtrl\KegiatanController::class, 'show'])->name('kegiatan.show');
     Route::post('/kegiatan/{kegiatan}/daftar', [UserCtrl\KegiatanController::class, 'daftar'])->name('kegiatan.daftar');
     Route::delete('/kegiatan/{kegiatan}/batal', [UserCtrl\KegiatanController::class, 'batal'])->name('kegiatan.batal');

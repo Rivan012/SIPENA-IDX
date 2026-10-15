@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     kegiatanList: Object,
@@ -27,12 +28,30 @@ const filterJenis = (cat) => {
     }, { preserveState: true });
 };
 
-const daftar = (keg) => {
-    router.post(route('user.kegiatan.daftar', keg.id));
+const daftar = async (keg) => {
+    const ok = await confirmDialog({
+        title: 'Daftar Kegiatan Edukasi?',
+        text: `Konfirmasi pendaftaran untuk kegiatan "${keg.nama_kegiatan}"?`,
+        confirmButtonText: 'Ya, Daftar Sekarang',
+        cancelButtonText: 'Batal',
+        icon: 'question',
+        confirmButtonColor: '#9F0E0F',
+    });
+    if (ok) {
+        router.post(route('user.kegiatan.daftar', keg.id));
+    }
 };
 
-const batal = (keg) => {
-    if (confirm('Batalkan pendaftaran kegiatan ini?')) {
+const batal = async (keg) => {
+    const ok = await confirmDialog({
+        title: 'Batalkan Pendaftaran?',
+        text: `Batalkan keikutsertaan Anda pada kegiatan "${keg.nama_kegiatan}"?`,
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tetap Ikut',
+        icon: 'warning',
+        confirmButtonColor: '#DC2626',
+    });
+    if (ok) {
         router.delete(route('user.kegiatan.batal', keg.id));
     }
 };
@@ -46,8 +65,8 @@ const batal = (keg) => {
             <!-- Header & Search -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Katalog Kegiatan Edukasi</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Ikuti seminar, sekolah pasar modal, dan workshop investasi secara gratis dan bersertifikat.</p>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Katalog Kegiatan Maker</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Kegiatan yang diajukan oleh maker atau mitra dan siap untuk dipelajari, diikuti, atau ditinjau admin.</p>
                 </div>
 
                 <div class="flex items-center gap-2">

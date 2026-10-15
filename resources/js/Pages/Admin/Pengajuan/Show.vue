@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     pengajuan: Object,
@@ -16,9 +17,52 @@ const form = useForm({
     terbitkan_kegiatan: true,
 });
 
-const updateDecision = (status) => {
-    form.status = status;
-    form.patch(route('admin.pengajuan.status', props.pengajuan.id));
+const updateDecision = async (status) => {
+    let title = 'Konfirmasi Keputusan';
+    let text = 'Lanjutkan pembaruan status proposal ini?';
+    let icon = 'question';
+    let confirmBtn = 'Ya, Simpan';
+    let btnColor = '#9F0E0F';
+
+    if (status === 'disetujui') {
+        title = 'Setujui Proposal Kegiatan?';
+        text = 'Proposal akan disetujui dan otomatis diterbitkan ke jadwal kegiatan edukasi.';
+        confirmBtn = 'Ya, Setujui Proposal';
+        btnColor = '#059669';
+        icon = 'question';
+    } else if (status === 'ditolak') {
+        title = 'Tolak Proposal Kegiatan?';
+        text = 'Proposal kegiatan ini akan ditandai ditolak.';
+        confirmBtn = 'Ya, Tolak Proposal';
+        btnColor = '#DC2626';
+        icon = 'warning';
+    } else if (status === 'revisi') {
+        title = 'Minta Revisi Proposal?';
+        text = 'Catatan revisi akan diteruskan kepada tim penyusun proposal.';
+        confirmBtn = 'Kirim Permintaan Revisi';
+        btnColor = '#D97706';
+        icon = 'info';
+    } else if (status === 'diproses') {
+        title = 'Tandai Sedang Ditinjau?';
+        text = 'Status proposal akan diubah menjadi dalam proses review.';
+        confirmBtn = 'Tandai Ditinjau';
+        btnColor = '#2563EB';
+        icon = 'info';
+    }
+
+    const ok = await confirmDialog({
+        title,
+        text,
+        confirmButtonText: confirmBtn,
+        cancelButtonText: 'Batal',
+        icon,
+        confirmButtonColor: btnColor,
+    });
+
+    if (ok) {
+        form.status = status;
+        form.patch(route('admin.pengajuan.status', props.pengajuan.id));
+    }
 };
 </script>
 

@@ -46,7 +46,7 @@ defineProps({
                 <p class="text-xs text-slate-600 leading-relaxed">{{ kegiatan.deskripsi }}</p>
 
                 <!-- Grid Info Detail -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4 border-t border-slate-100 text-xs">
                     <div class="p-3 bg-slate-50 rounded-xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TANGGAL</span>
                         <span class="font-bold text-slate-800 mt-1 block">
@@ -62,6 +62,10 @@ defineProps({
                     <div class="p-3 bg-slate-50 rounded-xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">LOKASI</span>
                         <span class="font-bold text-slate-800 mt-1 block truncate" :title="kegiatan.lokasi">{{ kegiatan.lokasi }}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">MITRA</span>
+                        <span class="font-bold text-slate-800 mt-1 block truncate" :title="kegiatan.mitra || '-'">{{ kegiatan.mitra || '-' }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PESERTA</span>

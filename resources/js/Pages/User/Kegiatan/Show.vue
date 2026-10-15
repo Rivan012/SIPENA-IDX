@@ -1,19 +1,43 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     kegiatan: Object,
     isRegistered: Boolean,
+    isOwner: Boolean,
 });
 
-const daftar = () => {
-    router.post(route('user.kegiatan.daftar', props.kegiatan.id));
+const edit = () => {
+    router.get(route('user.kegiatan.edit', props.kegiatan.id));
 };
 
-const batal = () => {
-    if (confirm('Batalkan pendaftaran pada kegiatan ini?')) {
-        router.delete(route('user.kegiatan.batal', props.kegiatan.id));
+const batal = async () => {
+    const ok = await confirmDialog({
+        title: 'Batalkan Proposal?',
+        text: 'Apakah Anda yakin ingin membatalkan proposal kegiatan ini?',
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tetap Simpan',
+        icon: 'warning',
+        confirmButtonColor: '#DC2626',
+    });
+    if (ok) {
+        router.patch(route('user.kegiatan.cancel', props.kegiatan.id));
+    }
+};
+
+const hapus = async () => {
+    const ok = await confirmDialog({
+        title: 'Hapus Proposal?',
+        text: 'Proposal ini akan dihapus permanen. Lanjutkan?',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        icon: 'warning',
+        confirmButtonColor: '#DC2626',
+    });
+    if (ok) {
+        router.delete(route('user.kegiatan.destroy', props.kegiatan.id));
     }
 };
 </script>
@@ -27,7 +51,7 @@ const batal = () => {
             <div class="flex items-center gap-1.5 text-xs text-slate-500">
                 <Link :href="route('user.dashboard')" class="hover:text-slate-900">Dashboard</Link>
                 <span>&rsaquo;</span>
-                <Link :href="route('user.kegiatan.index')" class="hover:text-slate-900">Katalog Kegiatan</Link>
+                <Link :href="route('user.kegiatan.index')" class="hover:text-slate-900">Proposal Saya</Link>
                 <span>&rsaquo;</span>
                 <span class="text-slate-800 font-semibold truncate">{{ kegiatan.nama_kegiatan }}</span>
             </div>
@@ -44,20 +68,22 @@ const batal = () => {
                         </span>
                     </div>
 
-                    <div>
-                        <div v-if="isRegistered" class="flex items-center gap-2">
-                            <span class="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5">
-                                &check; Anda Terdaftar Sebagai Peserta
-                            </span>
-                            <button type="button" @click="batal"
-                                    class="px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition">
-                                Batalkan
-                            </button>
-                        </div>
-                        <button v-else type="button" @click="daftar"
-                                class="px-5 py-2.5 rounded-xl bg-[#680A10] hover:bg-[#54080D] text-white text-xs sm:text-sm font-bold transition shadow-xs">
-                            Daftarkan Diri Sekarang
+                    <div v-if="isOwner" class="flex items-center gap-2">
+                        <button type="button" @click="edit"
+                                class="px-3 py-1.5 rounded-xl bg-[#680A10] text-white text-xs font-semibold transition">
+                            Edit Proposal
                         </button>
+                        <button type="button" @click="batal"
+                                class="px-3 py-1.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition">
+                            Batalkan
+                        </button>
+                        <button type="button" @click="hapus"
+                                class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+                            Hapus
+                        </button>
+                    </div>
+                    <div v-else class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold">
+                        Proposal dibuat oleh maker lain
                     </div>
                 </div>
 

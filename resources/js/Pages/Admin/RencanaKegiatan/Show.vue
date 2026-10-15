@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     rencana: Object,
@@ -8,8 +9,16 @@ const props = defineProps({
     pengajuan: Object,
 });
 
-const ajukan = () => {
-    if (confirm('Ajukan rencana kegiatan ini ke bagian persetujuan anggaran?')) {
+const ajukan = async () => {
+    const ok = await confirmDialog({
+        title: 'Ajukan Rencana Kegiatan?',
+        text: 'Ajukan rencana kegiatan ini ke bagian persetujuan anggaran?',
+        confirmButtonText: 'Ya, Ajukan',
+        cancelButtonText: 'Batal',
+        icon: 'question',
+        confirmButtonColor: '#9F0E0F',
+    });
+    if (ok) {
         router.post(route('admin.rencana-kegiatan.ajukan', props.rencana.id));
     }
 };

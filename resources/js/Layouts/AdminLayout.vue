@@ -1,22 +1,23 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { Link, usePage, router } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import {
     LayoutDashboardIcon,
     CalenderIcon,
     BoxIcon,
-    DocsIcon,
+    TableIcon,
     CheckIcon,
     UserGroupIcon,
-    MenuIcon,
     LogoutIcon,
-    ChevronRightIcon
+    MenuIcon,
+    ChevronRightIcon,
 } from '@/Icons';
+import { confirmDialog, showToast } from '@/Utils/sweetalert';
 
 defineProps({
     title: {
         type: String,
-        default: 'Portal Administrator',
+        default: 'Admin Portal',
     },
 });
 
@@ -27,6 +28,19 @@ const authAdmin = computed(() => page.props.auth?.admin || {});
 const pendingApproval = computed(() => page.props.pendingApprovalCount || 0);
 const flash = computed(() => page.props.flash || {});
 
+watch(() => flash.value.success, (msg) => {
+    if (msg) showToast(msg, 'success');
+});
+
+watch(() => flash.value.error, (msg) => {
+    if (msg) showToast(msg, 'error');
+});
+
+onMounted(() => {
+    if (flash.value?.success) showToast(flash.value.success, 'success');
+    if (flash.value?.error) showToast(flash.value.error, 'error');
+});
+
 const isCurrent = (name) => {
     try {
         return route().current(name);
@@ -35,8 +49,17 @@ const isCurrent = (name) => {
     }
 };
 
-const handleLogout = () => {
-    router.post(route('logout'));
+const handleLogout = async () => {
+    const ok = await confirmDialog({
+        title: 'Keluar dari Akun?',
+        text: 'Apakah Anda yakin ingin keluar dari sesi administrator SIPENA IDX?',
+        confirmButtonText: 'Ya, Keluar',
+        cancelButtonText: 'Batal',
+        icon: 'warning',
+    });
+    if (ok) {
+        router.post(route('logout'));
+    }
 };
 </script>
 

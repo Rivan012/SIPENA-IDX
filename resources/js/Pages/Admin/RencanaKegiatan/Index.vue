@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
+import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     rencanaList: Object,
@@ -23,27 +24,30 @@ const handleFilter = () => {
     }, { preserveState: true });
 };
 
-const showDeleteModal = ref(false);
-const deleteTarget = ref(null);
-
-const confirmDelete = (item) => {
-    deleteTarget.value = item;
-    showDeleteModal.value = true;
-};
-
-const executeDelete = () => {
-    if (deleteTarget.value) {
-        router.delete(route('admin.rencana-kegiatan.destroy', deleteTarget.value.id), {
-            onFinish: () => {
-                showDeleteModal.value = false;
-                deleteTarget.value = null;
-            },
-        });
+const confirmDelete = async (item) => {
+    const ok = await confirmDialog({
+        title: 'Hapus Rencana Anggaran?',
+        text: `Rencana "${item.nama_kegiatan}" akan dihapus secara permanen.`,
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        icon: 'warning',
+        confirmButtonColor: '#DC2626',
+    });
+    if (ok) {
+        router.delete(route('admin.rencana-kegiatan.destroy', item.id));
     }
 };
 
-const ajukanRencana = (item) => {
-    if (confirm(`Ajukan rencana "${item.nama_kegiatan}" untuk peninjauan anggaran?`)) {
+const ajukanRencana = async (item) => {
+    const ok = await confirmDialog({
+        title: 'Ajukan Rencana Kegiatan?',
+        text: `Ajukan rencana "${item.nama_kegiatan}" untuk peninjauan anggaran?`,
+        confirmButtonText: 'Ya, Ajukan',
+        cancelButtonText: 'Batal',
+        icon: 'question',
+        confirmButtonColor: '#9F0E0F',
+    });
+    if (ok) {
         router.post(route('admin.rencana-kegiatan.ajukan', item.id));
     }
 };
@@ -216,29 +220,6 @@ const ajukanRencana = (item) => {
                     :total="rencanaList.total"
                     item-label="pos anggaran"
                 />
-            </div>
-        </div>
-
-        <!-- Delete Modal -->
-        <div v-if="showDeleteModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-                <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </div>
-                <div class="text-center">
-                    <h3 class="text-base font-bold text-slate-900">Hapus Rencana Anggaran?</h3>
-                    <p class="text-xs text-slate-500 mt-1">
-                        Rencana <strong>{{ deleteTarget?.nama_kegiatan }}</strong> akan dihapus permanen.
-                    </p>
-                </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" @click="showDeleteModal = false" class="w-1/2 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                        Batal
-                    </button>
-                    <button type="button" @click="executeDelete" class="w-1/2 py-2 rounded-xl bg-red-600 text-xs font-semibold text-white hover:bg-red-700">
-                        Ya, Hapus
-                    </button>
-                </div>
             </div>
         </div>
     </AdminLayout>

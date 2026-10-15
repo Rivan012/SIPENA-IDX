@@ -17,6 +17,7 @@ const form = useForm({
     waktu_mulai: '09:00',
     waktu_selesai: '15:30',
     lokasi: '',
+    mitra: '',
     kuota_peserta: 100,
     status: 'menunggu_approval',
     rencana_kegiatan_id: '',
@@ -105,6 +106,15 @@ const submit = () => {
                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs" />
                             <p v-if="form.errors.lokasi" class="text-[11px] text-red-600 mt-1">{{ form.errors.lokasi }}</p>
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Mitra</label>
+                            <input v-model="form.mitra" type="text" placeholder="Contoh: PT Mandiri Sekuritas"
+                                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs" />
+                            <p v-if="form.errors.mitra" class="text-[11px] text-red-600 mt-1">{{ form.errors.mitra }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Kuota Target Peserta</label>
                             <input v-model="form.kuota_peserta" type="number" min="1" placeholder="100"
