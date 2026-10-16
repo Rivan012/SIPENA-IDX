@@ -45,6 +45,14 @@ defineProps({
                 <h1 class="text-2xl font-bold text-slate-900">{{ kegiatan.nama_kegiatan }}</h1>
                 <p class="text-xs text-slate-600 leading-relaxed">{{ kegiatan.deskripsi }}</p>
 
+                <div v-if="kegiatan.proposal_file_path" class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+                    <span class="text-xs font-semibold text-slate-700">Dokumen Proposal</span>
+                    <a :href="route('admin.kegiatan.proposal.download', kegiatan.id)"
+                       class="text-xs font-semibold text-[#680A10] hover:underline">
+                        Unduh PDF
+                    </a>
+                </div>
+
                 <!-- Grid Info Detail -->
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-3 pt-4 border-t border-slate-100 text-xs">
                     <div class="p-3 bg-slate-50 rounded-xl">

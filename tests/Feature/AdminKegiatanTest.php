@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Kegiatan;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -49,6 +50,106 @@ class AdminKegiatanTest extends TestCase
         $response->assertSee('SPM Level 1 Bengkulu');
         $response->assertSee('GI BEI UNIB');
         $response->assertSee('PT BEI');
+        $response->assertInertia(fn ($page) => $page
+            ->where('kegiatan.data.0.status', 'dipublikasikan')
+            ->where('kegiatan.data.0.status_label', 'Terjadwal')
+            ->where('kegiatan.data.0.status_class', 'bg-sky-50 text-sky-700')
+        );
+    }
+
+    public function test_admin_kegiatan_lists_approved_maker_proposals_and_legacy_activities(): void
+    {
+        $maker = User::factory()->create();
+        $statuses = [
+            'menunggu_approval' => false,
+            'diproses' => false,
+            'revisi' => false,
+            'ditolak' => false,
+            'dibatalkan' => false,
+            'disetujui' => true,
+            'dipublikasikan' => true,
+            'berlangsung' => true,
+            'selesai' => true,
+        ];
+
+        foreach ($statuses as $status => $isVisible) {
+            Kegiatan::create([
+                'user_id' => $maker->id,
+                'nama_kegiatan' => "Proposal {$status}",
+                'deskripsi' => 'Proposal maker untuk uji status',
+                'jenis_kegiatan' => 'Workshop',
+                'tanggal' => now()->addDays(5)->format('Y-m-d'),
+                'waktu_mulai' => '09:00',
+                'lokasi' => 'Aula BEI',
+                'status' => $status,
+            ]);
+        }
+
+        Kegiatan::create([
+            'nama_kegiatan' => 'Kegiatan Legacy Menunggu',
+            'deskripsi' => 'Kegiatan dari alur lama',
+            'jenis_kegiatan' => 'SPM',
+            'tanggal' => now()->addDays(5)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Galeri Investasi',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan');
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Admin/Kegiatan/Index')
+            ->has('kegiatan.data', 5)
+            ->where('stats.total', 5)
+            ->where('stats.berjalan', 1)
+            ->where('stats.selesai', 1)
+            ->where('stats.menunggu', 1)
+        );
+
+        foreach (['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'] as $status) {
+            $response->assertSee("Proposal {$status}");
+        }
+
+        foreach (['menunggu_approval', 'diproses', 'revisi', 'ditolak', 'dibatalkan'] as $status) {
+            $response->assertDontSee("Proposal {$status}");
+        }
+
+        $response->assertSee('Kegiatan Legacy Menunggu');
+    }
+
+    public function test_admin_kegiatan_csv_excludes_unapproved_maker_proposals(): void
+    {
+        $maker = User::factory()->create();
+
+        foreach (['menunggu_approval', 'disetujui'] as $status) {
+            Kegiatan::create([
+                'user_id' => $maker->id,
+                'nama_kegiatan' => "CSV {$status}",
+                'deskripsi' => 'Proposal untuk ekspor CSV',
+                'jenis_kegiatan' => 'Workshop',
+                'tanggal' => now()->addDays(5)->format('Y-m-d'),
+                'waktu_mulai' => '09:00',
+                'lokasi' => 'Aula BEI',
+                'status' => $status,
+            ]);
+        }
+
+        Kegiatan::create([
+            'nama_kegiatan' => 'CSV Legacy Menunggu',
+            'deskripsi' => 'Kegiatan dari alur lama',
+            'jenis_kegiatan' => 'SPM',
+            'tanggal' => now()->addDays(5)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Galeri Investasi',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan?export=csv');
+        $csv = $response->streamedContent();
+
+        $this->assertStringContainsString('CSV disetujui', $csv);
+        $this->assertStringContainsString('CSV Legacy Menunggu', $csv);
+        $this->assertStringNotContainsString('CSV menunggu_approval', $csv);
     }
 
     public function test_admin_can_view_create_page(): void

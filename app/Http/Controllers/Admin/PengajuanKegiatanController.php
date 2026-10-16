@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -68,14 +70,53 @@ class PengajuanKegiatanController extends Controller
             'disetujui' => $disetujuiList->count(),
             'revisi' => $revisiList->count(),
             'ditolak' => $ditolakList->count(),
-            'anggaran_review' => 'Rp ' . number_format($totalAnggaranReview, 0, ',', '.'),
+            'anggaran_review' => 'Rp '.number_format($totalAnggaranReview, 0, ',', '.'),
         ];
 
         $pengajuanList = $query->paginate(10)->withQueryString();
         $categories = RencanaKegiatan::distinct()->pluck('jenis_kegiatan')->filter()->values();
 
+        $makerQuery = Kegiatan::query()
+            ->with(['user', 'reviewedByAdmin'])
+            ->whereNotNull('user_id');
+
+        if ($makerSearch = $request->get('maker_search')) {
+            $makerQuery->where(function ($q) use ($makerSearch) {
+                $q->where('nama_kegiatan', 'like', "%{$makerSearch}%")
+                    ->orWhere('mitra', 'like', "%{$makerSearch}%")
+                    ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$makerSearch}%"));
+            });
+        }
+
+        if ($makerStatus = $request->get('maker_status')) {
+            if ($makerStatus === 'menunggu') {
+                $makerQuery->whereIn('status', ['menunggu_approval', 'diproses']);
+            } elseif ($makerStatus === 'disetujui') {
+                $makerQuery->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung', 'selesai']);
+            } elseif ($makerStatus === 'masalah') {
+                $makerQuery->whereIn('status', ['revisi', 'ditolak', 'dibatalkan']);
+            }
+        }
+
+        $makerProposals = $makerQuery->latest('created_at')->paginate(8, ['*'], 'maker_page')->withQueryString();
+        $makerStats = [
+            'menunggu' => Kegiatan::whereNotNull('user_id')->whereIn('status', ['menunggu_approval', 'diproses'])->count(),
+            'disetujui' => Kegiatan::whereNotNull('user_id')->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'])->count(),
+            'masalah' => Kegiatan::whereNotNull('user_id')->whereIn('status', ['revisi', 'ditolak', 'dibatalkan'])->count(),
+        ];
+        $priorityProposal = Kegiatan::query()
+            ->with('user')
+            ->whereNotNull('user_id')
+            ->whereIn('status', ['menunggu_approval', 'diproses'])
+            ->oldest('created_at')
+            ->first();
+
         return Inertia::render('Admin/Pengajuan/Index', [
             'pengajuanList' => $pengajuanList,
+            'makerProposals' => $makerProposals,
+            'makerStats' => $makerStats,
+            'makerFilters' => $request->only(['maker_search', 'maker_status']),
+            'priorityProposal' => $priorityProposal,
             'stats' => $stats,
             'categories' => $categories,
             'filters' => $request->only(['search', 'status', 'kategori']),
@@ -111,7 +152,7 @@ class PengajuanKegiatanController extends Controller
             return PengajuanKegiatan::create([
                 'rencana_kegiatan_id' => $rencana->id,
                 'admin_id' => $adminId,
-                'nomor_pengajuan' => 'PROP-' . date('Ymd') . '-' . sprintf('%03d', $rencana->id),
+                'nomor_pengajuan' => 'PROP-'.date('Ymd').'-'.sprintf('%03d', $rencana->id),
                 'tanggal_pengajuan' => now()->toDateString(),
                 'status' => 'diajukan',
                 'catatan' => $validated['catatan'] ?? 'Diajukan untuk review dan persetujuan kegiatan.',
@@ -139,11 +180,11 @@ class PengajuanKegiatanController extends Controller
             $item->status = $newStatus;
             $item->diproses_at = now();
 
-            if (!empty($validated['catatan'])) {
+            if (! empty($validated['catatan'])) {
                 $item->catatan = $validated['catatan'];
             }
 
-            if (!empty($validated['catatan_revisi'])) {
+            if (! empty($validated['catatan_revisi'])) {
                 $item->catatan_revisi = $validated['catatan_revisi'];
             }
 
@@ -160,7 +201,7 @@ class PengajuanKegiatanController extends Controller
             }
 
             if ($newStatus === 'disetujui' && $request->boolean('terbitkan_kegiatan', true)) {
-                if (!$item->kegiatan) {
+                if (! $item->kegiatan) {
                     $rencana = $item->rencanaKegiatan;
                     $detail = $rencana?->detailKegiatan;
 
@@ -168,7 +209,7 @@ class PengajuanKegiatanController extends Controller
                         'pengajuan_kegiatan_id' => $item->id,
                         'rencana_kegiatan_id' => $rencana?->id,
                         'nama_kegiatan' => $rencana?->nama_kegiatan ?? 'Kegiatan Edukasi Pasar Modal',
-                        'deskripsi' => $detail?->deskripsi ?? ('Program edukasi pasar modal: ' . ($rencana?->nama_kegiatan ?? '')),
+                        'deskripsi' => $detail?->deskripsi ?? ('Program edukasi pasar modal: '.($rencana?->nama_kegiatan ?? '')),
                         'jenis_kegiatan' => $rencana?->jenis_kegiatan ?? 'Edukasi',
                         'tanggal' => $detail?->tanggal ?? ($rencana?->tanggal_rencana ?? now()->toDateString()),
                         'waktu_mulai' => $detail?->waktu_mulai ?? '09:00',
@@ -193,6 +234,31 @@ class PengajuanKegiatanController extends Controller
         return back()->with('success', "Status pengajuan {$item->nomor_pengajuan} berhasil diperbarui menjadi {$label}.");
     }
 
+    public function updateMakerProposalStatus(Request $request, Kegiatan $kegiatan): RedirectResponse
+    {
+        abort_unless($kegiatan->user_id !== null, 404);
+        abort_unless(in_array($kegiatan->status, ['menunggu_approval', 'diproses'], true), 409);
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['diproses', 'disetujui', 'revisi', 'ditolak'])],
+            'catatan' => [
+                Rule::requiredIf(in_array($request->input('status'), ['revisi', 'ditolak'], true)),
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        $kegiatan->update([
+            'status' => $validated['status'],
+            'approval_note' => $validated['catatan'] ?? null,
+            'reviewed_by_admin_id' => Auth::guard('admin')->id(),
+            'approval_processed_at' => now(),
+        ]);
+
+        return back()->with('success', 'Status proposal maker berhasil diperbarui.');
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $query = PengajuanKegiatan::with(['rencanaKegiatan.detailKegiatan', 'admin'])->latest('tanggal_pengajuan');
@@ -205,12 +271,12 @@ class PengajuanKegiatanController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="daftar-approval-pengajuan-' . date('Ymd-His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="daftar-approval-pengajuan-'.date('Ymd-His').'.csv"',
         ];
 
         return response()->stream(function () use ($items) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($handle, [
                 'Nomor Pengajuan',
                 'Nama Kegiatan',

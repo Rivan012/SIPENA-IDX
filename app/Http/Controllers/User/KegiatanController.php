@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,10 +41,14 @@ class KegiatanController extends Controller
             'lokasi' => ['required', 'string', 'max:255'],
             'mitra' => ['nullable', 'string', 'max:255'],
             'kuota_peserta' => ['nullable', 'integer', 'min:1'],
+            'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $proposalFilePath = $request->file('proposal_file')?->store('proposals', 'local');
 
         Kegiatan::create([
             'user_id' => Auth::guard('web')->id(),
+            'proposal_file_path' => $proposalFilePath,
             'nama_kegiatan' => $validated['nama_kegiatan'],
             'deskripsi' => $validated['deskripsi'],
             'jenis_kegiatan' => $validated['jenis_kegiatan'],
@@ -93,7 +98,7 @@ class KegiatanController extends Controller
 
     public function show($kegiatan): Response
     {
-        $item = Kegiatan::with(['agenda', 'peserta', 'user'])->findOrFail($kegiatan);
+        $item = Kegiatan::with(['agenda', 'peserta', 'user', 'reviewedByAdmin'])->findOrFail($kegiatan);
         $user = Auth::guard('web')->user();
         $isRegistered = $user ? $item->peserta()->where('user_id', $user->id)->exists() : false;
         $isOwner = $user ? (int) $item->user_id === (int) $user->id : false;
@@ -128,7 +133,13 @@ class KegiatanController extends Controller
             'lokasi' => ['required', 'string', 'max:255'],
             'mitra' => ['nullable', 'string', 'max:255'],
             'kuota_peserta' => ['nullable', 'integer', 'min:1'],
+            'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $oldProposalFilePath = $kegiatan->proposal_file_path;
+        $proposalFilePath = $request->file('proposal_file')?->store('proposals', 'local');
+
+        $wasRevising = $kegiatan->status === 'revisi';
 
         $kegiatan->update([
             'nama_kegiatan' => $validated['nama_kegiatan'],
@@ -140,14 +151,44 @@ class KegiatanController extends Controller
             'lokasi' => $validated['lokasi'],
             'mitra' => $validated['mitra'] ?? $kegiatan->mitra,
             'kuota_peserta' => $validated['kuota_peserta'] ?? $kegiatan->kuota_peserta,
+            'proposal_file_path' => $proposalFilePath ?? $oldProposalFilePath,
         ]);
 
+        if ($proposalFilePath && $oldProposalFilePath) {
+            Storage::disk('local')->delete($oldProposalFilePath);
+        }
+
+        if ($wasRevising) {
+            $kegiatan->update([
+                'status' => 'menunggu_approval',
+                'approval_note' => null,
+                'reviewed_by_admin_id' => null,
+                'approval_processed_at' => null,
+            ]);
+        }
+
         return redirect()->route('user.kegiatan.show', $kegiatan)->with('success', 'Proposal kegiatan berhasil diperbarui.');
+    }
+
+    public function downloadProposal(Kegiatan $kegiatan)
+    {
+        abort_if((int) $kegiatan->user_id !== (int) Auth::guard('web')->id(), 403);
+        abort_unless($kegiatan->proposal_file_path && Storage::disk('local')->exists($kegiatan->proposal_file_path), 404);
+
+        return Storage::disk('local')->download(
+            $kegiatan->proposal_file_path,
+            "proposal-{$kegiatan->id}.pdf",
+            ['Content-Type' => 'application/pdf'],
+        );
     }
 
     public function destroy(Kegiatan $kegiatan)
     {
         abort_if((int) $kegiatan->user_id !== (int) Auth::guard('web')->id(), 403);
+
+        if ($kegiatan->proposal_file_path) {
+            Storage::disk('local')->delete($kegiatan->proposal_file_path);
+        }
 
         $kegiatan->delete();
 

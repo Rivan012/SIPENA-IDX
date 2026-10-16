@@ -11,10 +11,15 @@ class Kegiatan extends Model
 
     protected $table = 'kegiatan';
 
+    protected $appends = ['kode', 'status_label', 'status_class'];
+
     // status => [label, badge classes]
     public const STATUS = [
         'menunggu_approval' => ['Menunggu Approval', 'bg-amber-50 text-amber-700'],
+        'diproses' => ['Sedang Ditinjau', 'bg-sky-50 text-sky-700'],
         'disetujui' => ['Disetujui', 'bg-emerald-50 text-emerald-700'],
+        'revisi' => ['Perlu Revisi', 'bg-amber-50 text-amber-700'],
+        'ditolak' => ['Ditolak', 'bg-red-100 text-red-800'],
         'dipublikasikan' => ['Terjadwal', 'bg-sky-50 text-sky-700'],
         'berlangsung' => ['Berlangsung', 'bg-rose-50 text-rose-700'],
         'selesai' => ['Selesai', 'bg-slate-100 text-slate-700'],
@@ -40,6 +45,10 @@ class Kegiatan extends Model
 
     protected $fillable = [
         'user_id',
+        'proposal_file_path',
+        'reviewed_by_admin_id',
+        'approval_note',
+        'approval_processed_at',
         'pengajuan_kegiatan_id',
         'rencana_kegiatan_id',
         'nama_kegiatan',
@@ -66,6 +75,11 @@ class Kegiatan extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function reviewedByAdmin()
+    {
+        return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
     }
 
     public function pengajuanKegiatan()

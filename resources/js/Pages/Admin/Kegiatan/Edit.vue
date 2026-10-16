@@ -72,7 +72,7 @@ const submit = () => {
                                 <option value="menunggu_approval">Menunggu Approval</option>
                                 <option value="disetujui">Disetujui</option>
                                 <option value="dipublikasikan">Dipublikasikan</option>
-                                <option value="berjalan">Berjalan</option>
+                                <option value="berlangsung">Berlangsung</option>
                                 <option value="selesai">Selesai</option>
                                 <option value="dibatalkan">Dibatalkan</option>
                             </select>

@@ -14,7 +14,7 @@ class KegiatanSayaController extends Controller
         $user = Auth::guard('web')->user();
 
         $kegiatanList = $user->kegiatanDiajukan()
-            ->with(['agenda'])
+            ->with(['agenda', 'reviewedByAdmin'])
             ->orderBy('tanggal', 'desc')
             ->paginate(10);
 

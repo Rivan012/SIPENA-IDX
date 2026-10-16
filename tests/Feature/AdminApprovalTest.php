@@ -4,10 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\DetailKegiatan;
+use App\Models\Kegiatan;
 use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class AdminApprovalTest extends TestCase
@@ -66,11 +69,106 @@ class AdminApprovalTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/pengajuan');
         $response->assertStatus(200);
-        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Admin/Pengajuan/Index')
             ->has('pengajuanList.data', 1)
             ->where('pengajuanList.data.0.nomor_pengajuan', 'PROP-20250515-001')
         );
+    }
+
+    public function test_admin_approval_queue_includes_maker_proposals(): void
+    {
+        $maker = User::factory()->create();
+        Kegiatan::create([
+            'user_id' => $maker->id,
+            'nama_kegiatan' => 'Proposal Maker untuk Review',
+            'deskripsi' => 'Materi proposal',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'mitra' => $maker->name,
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/approval');
+
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Admin/Pengajuan/Index')
+            ->has('makerProposals.data', 1)
+            ->where('makerProposals.data.0.nama_kegiatan', 'Proposal Maker untuk Review')
+            ->where('makerProposals.data.0.user.name', $maker->name)
+        );
+    }
+
+    public function test_admin_can_request_revision_and_maker_can_resubmit(): void
+    {
+        $maker = User::factory()->create();
+        $proposal = Kegiatan::create([
+            'user_id' => $maker->id,
+            'nama_kegiatan' => 'Proposal Butuh Revisi',
+            'deskripsi' => 'Deskripsi awal',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->patch("/admin/approval/kegiatan/{$proposal->id}/status", [
+                'status' => 'revisi',
+                'catatan' => 'Mohon lengkapi target peserta dan materi.',
+            ])
+            ->assertSessionHas('success');
+
+        $proposal->refresh();
+        $this->assertSame('revisi', $proposal->status);
+        $this->assertSame('Mohon lengkapi target peserta dan materi.', $proposal->approval_note);
+        $this->assertSame($this->admin->id, $proposal->reviewed_by_admin_id);
+
+        $makerPage = $this->actingAs($maker, 'web')->get('/kegiatan');
+        $makerPage->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->where('kegiatanList.data.0.status', 'revisi')
+            ->where('kegiatanList.data.0.approval_note', 'Mohon lengkapi target peserta dan materi.')
+            ->where('kegiatanList.data.0.reviewed_by_admin.name', $this->admin->name)
+        );
+
+        $this->actingAs($maker, 'web')->put("/kegiatan/{$proposal->id}", [
+            'nama_kegiatan' => 'Proposal Butuh Revisi',
+            'deskripsi' => 'Deskripsi sudah dilengkapi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(11)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+        ])->assertRedirect("/kegiatan/{$proposal->id}");
+
+        $proposal->refresh();
+        $this->assertSame('menunggu_approval', $proposal->status);
+        $this->assertNull($proposal->approval_note);
+        $this->assertNull($proposal->reviewed_by_admin_id);
+    }
+
+    public function test_admin_must_add_a_note_to_reject_maker_proposal(): void
+    {
+        $maker = User::factory()->create();
+        $proposal = Kegiatan::create([
+            'user_id' => $maker->id,
+            'nama_kegiatan' => 'Proposal Ditolak',
+            'deskripsi' => 'Deskripsi proposal',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->patch("/admin/approval/kegiatan/{$proposal->id}/status", ['status' => 'ditolak']);
+
+        $response->assertSessionHasErrors('catatan');
+        $this->assertSame('menunggu_approval', $proposal->fresh()->status);
     }
 
     public function test_admin_can_view_approval_detail(): void
@@ -93,7 +191,7 @@ class AdminApprovalTest extends TestCase
 
         $response = $this->actingAs($this->admin, 'admin')->get("/admin/pengajuan/{$pengajuan->id}");
         $response->assertStatus(200);
-        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Admin/Pengajuan/Show')
             ->where('pengajuan.nomor_pengajuan', 'PROP-20250610-002')
         );

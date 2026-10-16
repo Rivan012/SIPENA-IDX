@@ -6,7 +6,9 @@ use App\Models\Admin;
 use App\Models\Kegiatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -159,6 +161,89 @@ class AdminPenggunaTest extends TestCase
         $catalogResponse = $this->actingAs($this->user, 'web')->get('/kegiatan');
         $catalogResponse->assertStatus(200);
         $catalogResponse->assertSee('Workshop Investasi Mandiri');
+    }
+
+    public function test_maker_can_upload_pdf_proposal_and_admin_can_download_it(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->user, 'web')->post('/kegiatan/ajukan', [
+            'nama_kegiatan' => 'Workshop dengan Dokumen',
+            'deskripsi' => 'Proposal disertakan sebagai PDF',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(7)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'proposal_file' => UploadedFile::fake()->createWithContent('proposal.pdf', '%PDF-1.4 proposal'),
+        ]);
+
+        $response->assertRedirect('/kegiatan');
+        $proposal = Kegiatan::where('nama_kegiatan', 'Workshop dengan Dokumen')->firstOrFail();
+        $this->assertNotNull($proposal->proposal_file_path);
+        Storage::disk('local')->assertExists($proposal->proposal_file_path);
+
+        $userDownload = $this->actingAs($this->user, 'web')->get("/kegiatan/{$proposal->id}/proposal");
+        $userDownload->assertDownload("proposal-{$proposal->id}.pdf");
+
+        $otherMaker = User::factory()->create();
+        $this->actingAs($otherMaker, 'web')->get("/kegiatan/{$proposal->id}/proposal")->assertForbidden();
+
+        $adminDownload = $this->actingAs($this->admin, 'admin')->get("/admin/kegiatan/{$proposal->id}/proposal");
+        $adminDownload->assertDownload("proposal-{$proposal->id}.pdf");
+    }
+
+    public function test_maker_can_replace_an_existing_proposal_pdf(): void
+    {
+        Storage::fake('local');
+        $oldPath = 'proposals/old-proposal.pdf';
+        Storage::disk('local')->put($oldPath, '%PDF-1.4 old proposal');
+
+        $proposal = Kegiatan::create([
+            'user_id' => $this->user->id,
+            'nama_kegiatan' => 'Proposal Revisi PDF',
+            'deskripsi' => 'Dokumen diperbarui',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(9)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'status' => 'menunggu_approval',
+            'proposal_file_path' => $oldPath,
+        ]);
+
+        $response = $this->actingAs($this->user, 'web')->post("/kegiatan/{$proposal->id}", [
+            '_method' => 'put',
+            'nama_kegiatan' => 'Proposal Revisi PDF',
+            'deskripsi' => 'Dokumen diperbarui',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'proposal_file' => UploadedFile::fake()->createWithContent('proposal-baru.pdf', '%PDF-1.4 new proposal'),
+        ]);
+
+        $response->assertRedirect("/kegiatan/{$proposal->id}");
+        $proposal->refresh();
+        $this->assertNotSame($oldPath, $proposal->proposal_file_path);
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($proposal->proposal_file_path);
+    }
+
+    public function test_maker_cannot_upload_non_pdf_proposal(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->user, 'web')->post('/kegiatan/ajukan', [
+            'nama_kegiatan' => 'Workshop Tanpa PDF',
+            'deskripsi' => 'File harus ditolak',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(7)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'proposal_file' => UploadedFile::fake()->createWithContent('proposal.txt', '%PDF-1.4 still not a .pdf file'),
+        ]);
+
+        $response->assertSessionHasErrors('proposal_file');
+        $this->assertDatabaseMissing('kegiatan', ['nama_kegiatan' => 'Workshop Tanpa PDF']);
     }
 
     public function test_user_can_update_and_delete_own_activity_proposal(): void

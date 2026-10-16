@@ -91,14 +91,21 @@ const deleteProposal = async (item) => {
                                     {{ item.lokasi }}
                                 </td>
                                 <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                    <span :class="[
-                                        'inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold capitalize',
-                                        item.status === 'dipublikasikan' ? 'bg-emerald-100 text-emerald-800' :
-                                        item.status === 'ditolak' ? 'bg-red-100 text-red-800' :
-                                        item.status === 'dibatalkan' ? 'bg-slate-200 text-slate-700' : 'bg-amber-100 text-amber-800'
-                                    ]">
-                                        {{ item.status_label || item.status }}
-                                    </span>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span :class="[
+                                            'inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
+                                            ['disetujui', 'dipublikasikan'].includes(item.status) ? 'bg-emerald-100 text-emerald-800' :
+                                            ['diproses', 'berlangsung'].includes(item.status) ? 'bg-blue-100 text-blue-800' :
+                                            ['revisi', 'ditolak'].includes(item.status) ? 'bg-red-100 text-red-800' :
+                                            ['dibatalkan', 'selesai'].includes(item.status) ? 'bg-slate-200 text-slate-700' : 'bg-amber-100 text-amber-800'
+                                        ]">
+                                            {{ item.status_label || item.status }}
+                                        </span>
+                                        <span v-if="item.reviewed_by_admin?.name" class="text-[10px] text-slate-500">{{ item.reviewed_by_admin.name }}</span>
+                                    </div>
+                                    <p v-if="item.approval_note" class="mt-1 max-w-[220px] mx-auto whitespace-normal text-[10px] text-slate-500" :title="item.approval_note">
+                                        {{ item.approval_note }}
+                                    </p>
                                 </td>
                                 <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                     <div class="flex items-center justify-end gap-3">

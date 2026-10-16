@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,7 +17,7 @@ class KegiatanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Kegiatan::query()
+        $query = $this->manageableActivitiesQuery()
             ->with('rencanaKegiatan.detailKegiatan', 'rencanaKegiatan.admin')
             ->withCount('peserta')
             ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q
@@ -32,19 +34,19 @@ class KegiatanController extends Controller
             return $this->exportCsv($query->get());
         }
 
-        $year = Kegiatan::whereYear('tanggal', now()->year)->exists() ? now()->year : 2025;
+        $year = $this->manageableActivitiesQuery()->whereYear('tanggal', now()->year)->exists() ? now()->year : 2025;
         $stats = [
             'year' => $year,
-            'total' => Kegiatan::whereYear('tanggal', $year)->count(),
-            'berjalan' => Kegiatan::where('status', 'berjalan')->count(),
-            'selesai' => Kegiatan::where('status', 'selesai')->count(),
-            'menunggu' => Kegiatan::where('status', 'menunggu_approval')->count(),
+            'total' => $this->manageableActivitiesQuery()->whereYear('tanggal', $year)->count(),
+            'berjalan' => $this->manageableActivitiesQuery()->where('status', 'berlangsung')->count(),
+            'selesai' => $this->manageableActivitiesQuery()->where('status', 'selesai')->count(),
+            'menunggu' => $this->manageableActivitiesQuery()->where('status', 'menunggu_approval')->count(),
         ];
 
         return Inertia::render('Admin/Kegiatan/Index', [
             'kegiatan' => $query->paginate(10)->withQueryString(),
             'stats' => $stats,
-            'kategori' => Kegiatan::distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),
+            'kategori' => $this->manageableActivitiesQuery()->distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),
             'filters' => $request->only(['search', 'status', 'kategori']),
         ]);
     }
@@ -70,6 +72,17 @@ class KegiatanController extends Controller
         ]);
     }
 
+    public function downloadProposal(Kegiatan $kegiatan)
+    {
+        abort_unless($kegiatan->proposal_file_path && Storage::disk('local')->exists($kegiatan->proposal_file_path), 404);
+
+        return Storage::disk('local')->download(
+            $kegiatan->proposal_file_path,
+            "proposal-{$kegiatan->id}.pdf",
+            ['Content-Type' => 'application/pdf'],
+        );
+    }
+
     public function edit(Kegiatan $kegiatan): Response
     {
         return Inertia::render('Admin/Kegiatan/Edit', $this->formOptions($kegiatan));
@@ -84,6 +97,10 @@ class KegiatanController extends Controller
 
     public function destroy(Kegiatan $kegiatan)
     {
+        if ($kegiatan->proposal_file_path) {
+            Storage::disk('local')->delete($kegiatan->proposal_file_path);
+        }
+
         $kegiatan->delete();
 
         return redirect()->route('admin.kegiatan.index')->with('success', 'Kegiatan berhasil dihapus.');
@@ -105,6 +122,14 @@ class KegiatanController extends Controller
             'rencana_kegiatan_id' => ['nullable', 'exists:rencana_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
             'pengajuan_kegiatan_id' => ['nullable', 'exists:pengajuan_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
         ]);
+    }
+
+    private function manageableActivitiesQuery(): Builder
+    {
+        return Kegiatan::query()->where(function (Builder $query) {
+            $query->whereNull('user_id')
+                ->orWhereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung', 'selesai']);
+        });
     }
 
     private function formOptions(Kegiatan $kegiatan): array

@@ -95,6 +95,26 @@ const hapus = async () => {
                     {{ kegiatan.deskripsi }}
                 </p>
 
+                <section v-if="isOwner && (kegiatan.approval_note || kegiatan.reviewed_by_admin)" class="border border-slate-200 rounded-lg p-4 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 class="text-xs font-bold text-slate-900">Hasil Review Admin</h2>
+                        <span v-if="kegiatan.reviewed_by_admin" class="text-[11px] text-slate-500">
+                            {{ kegiatan.reviewed_by_admin.name }}
+                            <span v-if="kegiatan.approval_processed_at"> · {{ new Date(kegiatan.approval_processed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+                        </span>
+                    </div>
+                    <p v-if="kegiatan.approval_note" class="text-xs text-slate-700 whitespace-pre-line">{{ kegiatan.approval_note }}</p>
+                    <p v-else class="text-xs text-slate-500">Belum ada catatan dari reviewer.</p>
+                </section>
+
+                <div v-if="isOwner && kegiatan.proposal_file_path" class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
+                    <span class="text-xs font-semibold text-slate-700">Dokumen Proposal</span>
+                    <a :href="route('user.kegiatan.proposal.download', kegiatan.id)"
+                       class="text-xs font-semibold text-[#680A10] hover:underline">
+                        Unduh PDF
+                    </a>
+                </div>
+
                 <!-- Grid Info -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">

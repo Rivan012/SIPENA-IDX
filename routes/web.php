@@ -40,6 +40,7 @@ Route::middleware('auth:web')->name('user.')->group(function () {
     Route::post('/kegiatan/ajukan', [UserCtrl\KegiatanController::class, 'storeProposal'])->name('kegiatan.store');
     Route::get('/kegiatan', [UserCtrl\KegiatanSayaController::class, 'index'])->name('kegiatan.index');
     Route::get('/kegiatan/{kegiatan}/edit', [UserCtrl\KegiatanController::class, 'edit'])->name('kegiatan.edit');
+    Route::get('/kegiatan/{kegiatan}/proposal', [UserCtrl\KegiatanController::class, 'downloadProposal'])->name('kegiatan.proposal.download');
     Route::put('/kegiatan/{kegiatan}', [UserCtrl\KegiatanController::class, 'update'])->name('kegiatan.update');
     Route::delete('/kegiatan/{kegiatan}', [UserCtrl\KegiatanController::class, 'destroy'])->name('kegiatan.destroy');
     Route::patch('/kegiatan/{kegiatan}/batalkan', [UserCtrl\KegiatanController::class, 'cancel'])->name('kegiatan.cancel');
@@ -82,11 +83,13 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     Route::get('pengajuan/{pengajuan}', [AdminCtrl\PengajuanKegiatanController::class, 'show'])->name('pengajuan.show');
     Route::post('pengajuan', [AdminCtrl\PengajuanKegiatanController::class, 'store'])->name('pengajuan.store');
     Route::patch('pengajuan/{pengajuan}/status', [AdminCtrl\PengajuanKegiatanController::class, 'updateStatus'])->name('pengajuan.status');
+    Route::patch('approval/kegiatan/{kegiatan}/status', [AdminCtrl\PengajuanKegiatanController::class, 'updateMakerProposalStatus'])->name('approval.kegiatan.status');
 
     // Kalender
     Route::get('kalender', [AdminCtrl\KalenderController::class, 'index'])->name('kalender.index');
 
     // Kegiatan & Agenda
+    Route::get('kegiatan/{kegiatan}/proposal', [AdminCtrl\KegiatanController::class, 'downloadProposal'])->name('kegiatan.proposal.download');
     Route::resource('kegiatan', AdminCtrl\KegiatanController::class);
     Route::resource('kegiatan.agenda', AdminCtrl\AgendaController::class)->shallow();
 
