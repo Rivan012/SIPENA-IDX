@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityDescriptionImageController;
 use App\Http\Controllers\Admin as AdminCtrl;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\User as UserCtrl;
@@ -31,8 +32,14 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+Route::get('/description-images/{ownerType}/{ownerId}/{filename}', [ActivityDescriptionImageController::class, 'show'])
+    ->middleware('auth:web,admin')
+    ->where(['ownerType' => 'users|admins', 'ownerId' => '[0-9]+', 'filename' => '[A-Fa-f0-9-]+\.(jpg|png|webp)'])
+    ->name('description-images.show');
+
 // User Protected Routes
 Route::middleware('auth:web')->name('user.')->group(function () {
+    Route::post('/description-images/users', [ActivityDescriptionImageController::class, 'storeForUser'])->name('description-images.store');
     Route::get('/dashboard', [UserCtrl\DashboardController::class, 'index'])->name('dashboard');
 
     // Kegiatan
@@ -67,6 +74,7 @@ Route::middleware('auth:web')->name('user.')->group(function () {
 // Admin Protected Routes
 Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminCtrl\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/description-images/admins', [ActivityDescriptionImageController::class, 'storeForAdmin'])->name('description-images.store');
 
     // Perencanaan & Anggaran
     Route::get('anggaran', [AdminCtrl\RencanaKegiatanController::class, 'index'])->name('anggaran.index');

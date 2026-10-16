@@ -1,9 +1,13 @@
 <script setup>
+import { defineAsyncComponent } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
 
+const RichTextEditor = defineAsyncComponent(() => import('@/Components/RichTextEditor.vue'));
+
 const props = defineProps({
     kegiatan: Object,
+    descriptionImageUploadUrl: String,
 });
 
 const form = useForm({
@@ -69,8 +73,7 @@ const submit = () => {
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Kegiatan *</label>
-                        <textarea v-model="form.deskripsi" rows="3" required placeholder="Jelaskan tujuan, materi, dan target acara..."
-                                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#680A10]/20"></textarea>
+                        <RichTextEditor v-model="form.deskripsi" :upload-url="props.descriptionImageUploadUrl" :disabled="form.processing" />
                         <p v-if="form.errors.deskripsi" class="text-[11px] text-red-600 mt-1">{{ form.errors.deskripsi }}</p>
                     </div>
 

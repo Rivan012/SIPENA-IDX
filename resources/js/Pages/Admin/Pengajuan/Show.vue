@@ -2,6 +2,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
+import RichTextContent from '@/Components/RichTextContent.vue';
 
 const props = defineProps({
     pengajuan: Object,
@@ -99,7 +100,7 @@ const updateDecision = async (status) => {
                 </div>
 
                 <h1 class="text-2xl font-bold text-slate-900">{{ pengajuan.nama_kegiatan }}</h1>
-                <p class="text-xs text-slate-600 leading-relaxed">{{ detail?.deskripsi || '-' }}</p>
+                <RichTextContent :html="detail?.deskripsi_html || ''" />
 
                 <!-- Grid Pos Anggaran -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">

@@ -104,7 +104,11 @@ const batal = async (keg) => {
             <!-- Grid Cards Kegiatan -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 <div v-for="keg in kegiatanList.data" :key="keg.id"
-                     class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+                     class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition overflow-hidden">
+                    <img v-if="keg.description_banner"
+                        :src="keg.description_banner"
+                        :alt="`Gambar ${keg.nama_kegiatan}`"
+                        class="-mx-5 -mt-5 mb-4 aspect-[16/7] w-[calc(100%+2.5rem)] object-cover" />
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
@@ -123,7 +127,7 @@ const batal = async (keg) => {
                         </h2>
 
                         <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                            {{ keg.deskripsi }}
+                            {{ keg.deskripsi_excerpt }}
                         </p>
 
                         <div class="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600">

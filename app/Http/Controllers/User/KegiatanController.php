@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
+use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class KegiatanController extends Controller
 {
+    public function __construct(private readonly ActivityDescriptionSanitizer $descriptionSanitizer) {}
+
     public function create(): Response
     {
         return Inertia::render('User/Kegiatan/Create', [
@@ -26,6 +29,7 @@ class KegiatanController extends Controller
                 'mitra' => Auth::guard('web')->user()?->name,
                 'kuota_peserta' => 80,
             ],
+            'descriptionImageUploadUrl' => route('user.description-images.store'),
         ]);
     }
 
@@ -43,6 +47,8 @@ class KegiatanController extends Controller
             'kuota_peserta' => ['nullable', 'integer', 'min:1'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
         $proposalFilePath = $request->file('proposal_file')?->store('proposals', 'local');
 
@@ -83,7 +89,12 @@ class KegiatanController extends Controller
             $query->where('jenis_kegiatan', $jenis);
         }
 
-        $kegiatanList = $query->paginate(9)->withQueryString();
+        $kegiatanList = $query->paginate(9)->withQueryString()->through(function (Kegiatan $kegiatan) {
+            $kegiatan->setAttribute('deskripsi_excerpt', $this->descriptionSanitizer->excerpt($kegiatan->deskripsi));
+            $kegiatan->setAttribute('description_banner', $this->descriptionSanitizer->firstImageUrl($kegiatan->deskripsi));
+
+            return $kegiatan;
+        });
         $categories = Kegiatan::distinct()->pluck('jenis_kegiatan')->filter()->values();
 
         $userKegiatanIds = Auth::guard('web')->user()?->kegiatan()->pluck('kegiatan.id')->toArray() ?? [];
@@ -99,6 +110,7 @@ class KegiatanController extends Controller
     public function show($kegiatan): Response
     {
         $item = Kegiatan::with(['agenda', 'peserta', 'user', 'reviewedByAdmin'])->findOrFail($kegiatan);
+        $item->setAttribute('deskripsi_html', $this->descriptionSanitizer->sanitize($item->deskripsi));
         $user = Auth::guard('web')->user();
         $isRegistered = $user ? $item->peserta()->where('user_id', $user->id)->exists() : false;
         $isOwner = $user ? (int) $item->user_id === (int) $user->id : false;
@@ -113,9 +125,11 @@ class KegiatanController extends Controller
     public function edit(Kegiatan $kegiatan): Response
     {
         abort_if((int) $kegiatan->user_id !== (int) Auth::guard('web')->id(), 403);
+        $kegiatan->deskripsi = $this->descriptionSanitizer->sanitize($kegiatan->deskripsi);
 
         return Inertia::render('User/Kegiatan/Edit', [
             'kegiatan' => $kegiatan,
+            'descriptionImageUploadUrl' => route('user.description-images.store'),
         ]);
     }
 
@@ -135,6 +149,8 @@ class KegiatanController extends Controller
             'kuota_peserta' => ['nullable', 'integer', 'min:1'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
         $oldProposalFilePath = $kegiatan->proposal_file_path;
         $proposalFilePath = $request->file('proposal_file')?->store('proposals', 'local');

@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import UserLayout from '@/Layouts/UserLayout.vue';
+import RichTextContent from '@/Components/RichTextContent.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
@@ -91,9 +92,7 @@ const hapus = async () => {
                     {{ kegiatan.nama_kegiatan }}
                 </h1>
 
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    {{ kegiatan.deskripsi }}
-                </p>
+                <RichTextContent :html="kegiatan.deskripsi_html" />
 
                 <section v-if="isOwner && (kegiatan.approval_note || kegiatan.reviewed_by_admin)" class="border border-slate-200 rounded-lg p-4 space-y-2">
                     <div class="flex flex-wrap items-center justify-between gap-2">

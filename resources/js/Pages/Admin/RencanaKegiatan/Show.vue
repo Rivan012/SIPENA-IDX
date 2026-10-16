@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import RichTextContent from '@/Components/RichTextContent.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
@@ -66,7 +67,7 @@ const ajukan = async () => {
                 </div>
 
                 <h1 class="text-2xl font-bold text-slate-900">{{ rencana.nama_kegiatan }}</h1>
-                <p class="text-xs text-slate-600 leading-relaxed">{{ detail?.deskripsi || '-' }}</p>
+                <RichTextContent :html="detail?.deskripsi_html || ''" />
 
                 <!-- Grid Pos Anggaran -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-xs">

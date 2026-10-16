@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\DetailKegiatan;
 use App\Models\RencanaKegiatan;
+use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Http\Request;
 
 class DetailKegiatanController extends Controller
 {
+    public function __construct(private readonly ActivityDescriptionSanitizer $descriptionSanitizer) {}
+
     public function store(Request $request, $rencana)
     {
         $rencanaModel = RencanaKegiatan::findOrFail($rencana);
@@ -23,6 +25,8 @@ class DetailKegiatanController extends Controller
             'target_peserta' => ['nullable', 'integer', 'min:1'],
             'anggaran' => ['required', 'numeric', 'min:0'],
         ]);
+
+        $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
         $detail = $rencanaModel->detailKegiatan()->create($validated);
 
@@ -43,6 +47,8 @@ class DetailKegiatanController extends Controller
             'target_peserta' => ['nullable', 'integer', 'min:1'],
             'anggaran' => ['required', 'numeric', 'min:0'],
         ]);
+
+        $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
         $detail = $rencanaModel->detailKegiatan()->updateOrCreate(
             ['rencana_kegiatan_id' => $rencanaModel->id],

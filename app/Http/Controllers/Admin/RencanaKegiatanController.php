@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DetailKegiatan;
 use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
+use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class RencanaKegiatanController extends Controller
 {
     public const PAGU_RKAP_DEFAULT = 350000000;
+
+    public function __construct(private readonly ActivityDescriptionSanitizer $descriptionSanitizer) {}
 
     public function index(Request $request)
     {
@@ -48,7 +51,7 @@ class RencanaKegiatanController extends Controller
         }
 
         $selectedYear = $request->get('year');
-        if (!$selectedYear) {
+        if (! $selectedYear) {
             $latestRencana = RencanaKegiatan::orderByDesc('tanggal_rencana')->first();
             $selectedYear = $latestRencana?->tanggal_rencana?->format('Y') ?? 2025;
         }
@@ -71,13 +74,13 @@ class RencanaKegiatanController extends Controller
 
         $stats = [
             'pagu_rkap' => $paguRkap,
-            'pagu_rkap_formatted' => 'Rp ' . number_format($paguRkap, 0, ',', '.'),
+            'pagu_rkap_formatted' => 'Rp '.number_format($paguRkap, 0, ',', '.'),
             'total_alokasi' => $totalAlokasi,
-            'total_alokasi_formatted' => 'Rp ' . number_format($totalAlokasi, 0, ',', '.'),
+            'total_alokasi_formatted' => 'Rp '.number_format($totalAlokasi, 0, ',', '.'),
             'total_disetujui' => $totalDisetujui,
-            'total_disetujui_formatted' => 'Rp ' . number_format($totalDisetujui, 0, ',', '.'),
+            'total_disetujui_formatted' => 'Rp '.number_format($totalDisetujui, 0, ',', '.'),
             'sisa_pagu' => $sisaPagu,
-            'sisa_pagu_formatted' => 'Rp ' . number_format($sisaPagu, 0, ',', '.'),
+            'sisa_pagu_formatted' => 'Rp '.number_format($sisaPagu, 0, ',', '.'),
             'persen_penyerapan' => $persenPenyerapan,
             'total_kegiatan' => $allRencana->count(),
             'count_draft' => $allRencana->where('status', 'draft')->count(),
@@ -115,6 +118,7 @@ class RencanaKegiatanController extends Controller
         return Inertia::render('Admin/RencanaKegiatan/Create', [
             'rencana' => $rencana,
             'detail' => $detail,
+            'descriptionImageUploadUrl' => route('admin.description-images.store'),
             'categories' => ['SPM', 'Sosialisasi', 'Workshop', 'Edukasi', 'Webinar'],
         ]);
     }
@@ -135,6 +139,10 @@ class RencanaKegiatanController extends Controller
             'status' => ['nullable', 'in:draft,diajukan'],
         ]);
 
+        if (isset($validated['deskripsi'])) {
+            $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
+        }
+
         $adminId = Auth::guard('admin')->id();
         $status = $validated['status'] ?? 'draft';
 
@@ -150,7 +158,7 @@ class RencanaKegiatanController extends Controller
 
             DetailKegiatan::create([
                 'rencana_kegiatan_id' => $rencana->id,
-                'deskripsi' => $validated['deskripsi'] ?? ('Pelaksanaan program ' . $validated['nama_kegiatan']),
+                'deskripsi' => $validated['deskripsi'] ?? ('Pelaksanaan program '.$validated['nama_kegiatan']),
                 'jenis_kegiatan' => $validated['jenis_kegiatan'],
                 'tanggal' => $validated['tanggal_rencana'],
                 'waktu_mulai' => $validated['waktu_mulai'],
@@ -164,7 +172,7 @@ class RencanaKegiatanController extends Controller
                 PengajuanKegiatan::create([
                     'rencana_kegiatan_id' => $rencana->id,
                     'admin_id' => $adminId,
-                    'nomor_pengajuan' => 'PROP-' . date('Ymd') . '-' . sprintf('%03d', $rencana->id),
+                    'nomor_pengajuan' => 'PROP-'.date('Ymd').'-'.sprintf('%03d', $rencana->id),
                     'tanggal_pengajuan' => now()->toDateString(),
                     'status' => 'diajukan',
                     'catatan' => 'Diajukan saat pembuatan rencana kegiatan & anggaran.',
@@ -182,6 +190,13 @@ class RencanaKegiatanController extends Controller
     {
         $rencana_kegiatan->load(['detailKegiatan', 'pengajuanKegiatan.admin', 'kegiatan', 'admin']);
 
+        if ($rencana_kegiatan->detailKegiatan) {
+            $rencana_kegiatan->detailKegiatan->setAttribute(
+                'deskripsi_html',
+                $this->descriptionSanitizer->sanitize($rencana_kegiatan->detailKegiatan->deskripsi),
+            );
+        }
+
         return Inertia::render('Admin/RencanaKegiatan/Show', [
             'rencana' => $rencana_kegiatan,
             'detail' => $rencana_kegiatan->detailKegiatan,
@@ -193,9 +208,14 @@ class RencanaKegiatanController extends Controller
     {
         $rencana_kegiatan->load('detailKegiatan');
 
+        if ($rencana_kegiatan->detailKegiatan) {
+            $rencana_kegiatan->detailKegiatan->deskripsi = $this->descriptionSanitizer->sanitize($rencana_kegiatan->detailKegiatan->deskripsi);
+        }
+
         return Inertia::render('Admin/RencanaKegiatan/Edit', [
             'rencana' => $rencana_kegiatan,
-            'detail' => $rencana_kegiatan->detailKegiatan ?? new DetailKegiatan(),
+            'detail' => $rencana_kegiatan->detailKegiatan ?? new DetailKegiatan,
+            'descriptionImageUploadUrl' => route('admin.description-images.store'),
             'categories' => ['SPM', 'Sosialisasi', 'Workshop', 'Edukasi', 'Webinar'],
         ]);
     }
@@ -216,6 +236,10 @@ class RencanaKegiatanController extends Controller
             'status' => ['nullable', 'in:draft,diajukan,disetujui,ditolak'],
         ]);
 
+        if (isset($validated['deskripsi'])) {
+            $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
+        }
+
         DB::transaction(function () use ($validated, $rencana_kegiatan) {
             $rencana_kegiatan->update([
                 'nama_kegiatan' => $validated['nama_kegiatan'],
@@ -228,7 +252,7 @@ class RencanaKegiatanController extends Controller
             $rencana_kegiatan->detailKegiatan()->updateOrCreate(
                 ['rencana_kegiatan_id' => $rencana_kegiatan->id],
                 [
-                    'deskripsi' => $validated['deskripsi'] ?? ('Pelaksanaan program ' . $validated['nama_kegiatan']),
+                    'deskripsi' => $validated['deskripsi'] ?? ('Pelaksanaan program '.$validated['nama_kegiatan']),
                     'jenis_kegiatan' => $validated['jenis_kegiatan'],
                     'tanggal' => $validated['tanggal_rencana'],
                     'waktu_mulai' => $validated['waktu_mulai'],
@@ -264,7 +288,7 @@ class RencanaKegiatanController extends Controller
                 ['rencana_kegiatan_id' => $rencana_kegiatan->id],
                 [
                     'admin_id' => $adminId,
-                    'nomor_pengajuan' => 'PROP-' . date('Ymd') . '-' . sprintf('%03d', $rencana_kegiatan->id),
+                    'nomor_pengajuan' => 'PROP-'.date('Ymd').'-'.sprintf('%03d', $rencana_kegiatan->id),
                     'tanggal_pengajuan' => now()->toDateString(),
                     'status' => 'diajukan',
                     'catatan' => 'Diajukan untuk peninjauan dan persetujuan anggaran.',
@@ -287,12 +311,12 @@ class RencanaKegiatanController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="rencana-anggaran-sipena-' . date('Ymd-His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="rencana-anggaran-sipena-'.date('Ymd-His').'.csv"',
         ];
 
         return response()->stream(function () use ($items) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($handle, [
                 'Kode Rencana',
                 'Nama Kegiatan',

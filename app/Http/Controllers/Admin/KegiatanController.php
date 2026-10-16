@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
 use App\Models\PengajuanKegiatan;
 use App\Models\RencanaKegiatan;
+use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class KegiatanController extends Controller
 {
+    public function __construct(private readonly ActivityDescriptionSanitizer $descriptionSanitizer) {}
+
     public function index(Request $request)
     {
         $query = $this->manageableActivitiesQuery()
@@ -66,6 +69,7 @@ class KegiatanController extends Controller
     public function show(Kegiatan $kegiatan): Response
     {
         $kegiatan->load('rencanaKegiatan.detailKegiatan', 'pengajuanKegiatan', 'agenda', 'peserta.user', 'laporanKegiatan');
+        $kegiatan->setAttribute('deskripsi_html', $this->descriptionSanitizer->sanitize($kegiatan->deskripsi));
 
         return Inertia::render('Admin/Kegiatan/Show', [
             'kegiatan' => $kegiatan,
@@ -108,7 +112,7 @@ class KegiatanController extends Controller
 
     private function validated(Request $request, ?Kegiatan $kegiatan = null): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'nama_kegiatan' => 'required|string|max:255',
             'deskripsi' => 'required|string',
             'jenis_kegiatan' => 'required|string|max:100',
@@ -122,6 +126,10 @@ class KegiatanController extends Controller
             'rencana_kegiatan_id' => ['nullable', 'exists:rencana_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
             'pengajuan_kegiatan_id' => ['nullable', 'exists:pengajuan_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
         ]);
+
+        $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
+
+        return $validated;
     }
 
     private function manageableActivitiesQuery(): Builder
@@ -134,8 +142,13 @@ class KegiatanController extends Controller
 
     private function formOptions(Kegiatan $kegiatan): array
     {
+        if ($kegiatan->exists) {
+            $kegiatan->deskripsi = $this->descriptionSanitizer->sanitize($kegiatan->deskripsi);
+        }
+
         return [
             'kegiatan' => $kegiatan,
+            'descriptionImageUploadUrl' => route('admin.description-images.store'),
             'rencanaKegiatan' => RencanaKegiatan::orderByDesc('tanggal_rencana')->get(['id', 'nama_kegiatan']),
             'pengajuanKegiatan' => PengajuanKegiatan::with('rencanaKegiatan:id,nama_kegiatan')->where('status', 'disetujui')->get(),
             'kategori' => Kegiatan::distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),

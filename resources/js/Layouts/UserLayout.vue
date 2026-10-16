@@ -17,7 +17,7 @@ import { confirmDialog, showToast } from '@/Utils/sweetalert';
 defineProps({
     title: {
         type: String,
-        default: 'Portal Maker',
+        default: 'Portal Sipena',
     },
 });
 
@@ -52,7 +52,7 @@ const isCurrent = (name) => {
 const handleLogout = async () => {
     const ok = await confirmDialog({
         title: 'Keluar dari Akun?',
-        text: 'Apakah Anda yakin ingin keluar dari akun peserta SIPENA IDX?',
+        text: 'Apakah Anda yakin ingin keluar dari SIPENA IDX?',
         confirmButtonText: 'Ya, Keluar',
         cancelButtonText: 'Batal',
         icon: 'warning',
@@ -209,7 +209,7 @@ const handleLogout = async () => {
                         </div>
                         <div class="leading-tight truncate">
                             <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Maker' }}</div>
-                            <div class="text-[10px] text-rose-200 truncate font-medium">Maker</div>
+                            <div class="text-[10px] text-rose-200 truncate font-medium">SIPENA IDX</div>
                         </div>
                     </div>
                     <button
@@ -278,7 +278,7 @@ const handleLogout = async () => {
                         </div>
                         <div class="hidden sm:block text-left leading-tight">
                             <div class="text-xs font-bold text-slate-900">{{ authUser.name || 'Peserta' }}</div>
-                            <div class="text-[10px] font-semibold text-[#85131B]">Peserta</div>
+                            <div class="text-[10px] font-semibold text-[#85131B]"></div>
                         </div>
                     </div>
                 </div>

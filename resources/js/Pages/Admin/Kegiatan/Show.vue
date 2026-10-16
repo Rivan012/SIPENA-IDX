@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import RichTextContent from '@/Components/RichTextContent.vue';
 
 defineProps({
     kegiatan: Object,
@@ -43,7 +44,7 @@ defineProps({
                 </div>
 
                 <h1 class="text-2xl font-bold text-slate-900">{{ kegiatan.nama_kegiatan }}</h1>
-                <p class="text-xs text-slate-600 leading-relaxed">{{ kegiatan.deskripsi }}</p>
+                <RichTextContent :html="kegiatan.deskripsi_html" />
 
                 <div v-if="kegiatan.proposal_file_path" class="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
                     <span class="text-xs font-semibold text-slate-700">Dokumen Proposal</span>
