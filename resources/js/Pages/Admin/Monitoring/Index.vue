@@ -34,14 +34,14 @@ const viewHistory = (u) => {
 
 <template>
     <AdminLayout title="Manajemen Pengguna — SIPENA IDX">
-        <Head title="Manajemen Pengguna & Peserta" />
+        <Head title="Daftar Mitra & Administrator" />
 
         <div class="space-y-5">
             <!-- Header & Action -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Pengguna &amp; Peserta</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Monitoring data akun peserta edukasi pasar modal dan jajaran tim administrator.</p>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Daftar Mitra &amp; Administrator</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelola akun mitra pengusul kegiatan dan jajaran tim administrator.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -55,9 +55,9 @@ const viewHistory = (u) => {
             <!-- 4 KPI Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PESERTA TERDAFTAR</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">MITRA TERDAFTAR</span>
                     <span class="text-2xl font-bold text-slate-900 mt-1 block">{{ stats.total_users }}</span>
-                    <span class="text-[11px] text-slate-500 mt-0.5 block">Akun masyarakat & mhs</span>
+                    <span class="text-[11px] text-slate-500 mt-0.5 block">Akun mitra pengusul kegiatan</span>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ADMINISTRATOR</span>
@@ -84,7 +84,7 @@ const viewHistory = (u) => {
                                 'px-4 py-1.5 rounded-lg text-xs font-semibold transition',
                                 activeTab === 'users' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                             ]">
-                        Peserta Edukasi ({{ users.total || 0 }})
+                        Daftar Mitra ({{ users.total || 0 }})
                     </button>
                     <button type="button" @click="activeTab = 'admins'"
                             :class="[
@@ -108,13 +108,13 @@ const viewHistory = (u) => {
                 </div>
             </div>
 
-            <!-- Tab 1: Peserta Table -->
+            <!-- Tab 1: Mitra Table -->
             <div v-show="activeTab === 'users'" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-4">NAMA PESERTA</th>
+                                <th class="py-3 px-4">NAMA MITRA</th>
                                 <th class="py-3 px-4">EMAIL & KONTAK</th>
                                 <th class="py-3 px-4 text-center">KEGIATAN DIIKUTI</th>
                                 <th class="py-3 px-4">REGISTRASI</th>
@@ -147,7 +147,7 @@ const viewHistory = (u) => {
                             </tr>
                             <tr v-if="!users.data?.length">
                                 <td colspan="5" class="py-12 text-center text-slate-400 text-xs">
-                                    Tidak ada data peserta ditemukan.
+                                    Tidak ada data mitra ditemukan.
                                 </td>
                             </tr>
                         </tbody>
@@ -198,7 +198,7 @@ const viewHistory = (u) => {
             <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Riwayat Partisipasi Kegiatan</h3>
+                        <h3 class="text-sm font-bold text-slate-900">Riwayat Kegiatan Mitra</h3>
                         <p class="text-xs text-slate-500">{{ selectedUser?.name }} ({{ selectedUser?.email }})</p>
                     </div>
                     <button type="button" @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 font-bold">&times;</button>
@@ -215,7 +215,7 @@ const viewHistory = (u) => {
                         </span>
                     </div>
                     <div v-if="!selectedUser?.kegiatan?.length" class="py-8 text-center text-slate-400">
-                        Peserta ini belum terdaftar pada kegiatan manapun.
+                        Mitra ini belum terdaftar pada kegiatan manapun.
                     </div>
                 </div>
 

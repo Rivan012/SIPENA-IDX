@@ -48,7 +48,7 @@ const statusOptions = [
     { value: 'selesai', label: 'Selesai' },
 ];
 
-const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 const parseDateParts = (dateString) => {
@@ -301,18 +301,19 @@ const selectEvent = (event) => {
                     <!-- VIEW 1: BULAN (Matriks Kalender Bulanan) -->
                     <div v-if="activeView === 'bulan'" class="space-y-2">
                         <!-- Hari Header -->
-                        <div class="grid grid-cols-6 gap-1 text-center font-bold text-[11px] text-slate-500 pb-2 border-b border-slate-100">
-                            <span>Senin</span>
-                            <span>Selasa</span>
-                            <span>Rabu</span>
-                            <span>Kamis</span>
-                            <span>Jumat</span>
-                            <span class="text-red-500">Sabtu</span>
+                        <div class="grid grid-cols-7 gap-1 text-center font-bold text-[11px] text-slate-500 pb-2 border-b border-slate-100">
+                            <span
+                                v-for="(dayName, index) in dayNames"
+                                :key="dayName"
+                                :class="index === 0 || index === 6 ? 'text-red-500' : ''"
+                            >
+                                {{ dayName }}
+                            </span>
                         </div>
 
                         <!-- Weeks Grid -->
                         <div class="divide-y divide-slate-100">
-                            <div v-for="(week, wIdx) in displayCalendarWeeks" :key="wIdx" class="grid grid-cols-6 gap-1 py-1">
+                            <div v-for="(week, wIdx) in displayCalendarWeeks" :key="wIdx" class="grid grid-cols-7 gap-1 py-1">
                                 <div v-for="day in week" :key="day.date_string"
                                      @click="selectDate(day.date_string)"
                                      :class="[
@@ -394,8 +395,8 @@ const selectEvent = (event) => {
                             </button>
                         </div>
 
-                        <!-- 6 Kolom Hari Mingguan -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+                        <!-- 7 Hari Mingguan -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-2">
                             <div
                                 v-for="(day, dIdx) in currentWeek"
                                 :key="day.date_string"
@@ -549,61 +550,70 @@ const selectEvent = (event) => {
                 </div>
 
                 <!-- Kolom Kanan: Panel Detail Agenda Terpilih (4 Kolom) -->
-                <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs sticky top-20 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">DETAIL AGENDA TERPILIH</span>
-                        <span class="text-xs font-bold text-[#9F0E0F]">{{ selectedDate }}</span>
-                    </div>
+                <div class="lg:col-span-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs lg:sticky lg:top-20">
+                    <img
+                        v-if="selectedEvent?.description_banner"
+                        :src="selectedEvent.description_banner"
+                        :alt="`Banner ${selectedEvent.nama_kegiatan}`"
+                        class="block aspect-[16/7] w-full object-cover"
+                    />
 
-                    <div v-if="selectedEvent" class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                                {{ selectedEvent.jenis_kegiatan }}
-                            </span>
-                            <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold', selectedEvent.status_class]">
-                                {{ selectedEvent.status_label }}
-                            </span>
+                    <div class="space-y-4 p-4 sm:p-5">
+                        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-slate-100 pb-3">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Detail agenda terpilih</span>
+                            <span class="text-xs font-bold text-[#9F0E0F]">{{ selectedDate }}</span>
                         </div>
 
-                        <h2 class="text-base font-bold text-slate-900 leading-snug">
-                            {{ selectedEvent.nama_kegiatan }}
-                        </h2>
+                        <div v-if="selectedEvent" class="space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-700">
+                                    {{ selectedEvent.jenis_kegiatan }}
+                                </span>
+                                <span :class="['rounded-full px-2.5 py-1 text-[10px] font-bold', selectedEvent.status_class]">
+                                    {{ selectedEvent.status_label }}
+                                </span>
+                            </div>
 
-                        <div class="space-y-2 text-xs text-slate-600 border-y border-slate-100 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-400 w-16">WAKTU:</span>
-                                <span class="font-semibold text-slate-800">{{ selectedEvent.waktu_mulai }} - {{ selectedEvent.waktu_selesai }} WIB</span>
+                            <h2 class="break-words text-base font-bold leading-snug text-slate-900">
+                                {{ selectedEvent.nama_kegiatan }}
+                            </h2>
+
+                            <div class="space-y-2.5 border-y border-slate-100 py-3 text-xs text-slate-600">
+                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                                    <span class="font-bold text-slate-500">WAKTU:</span>
+                                    <span class="min-w-0 font-semibold text-slate-800">{{ selectedEvent.waktu_mulai }} - {{ selectedEvent.waktu_selesai }} WIB</span>
+                                </div>
+                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                                    <span class="font-bold text-slate-500">TEMPAT:</span>
+                                    <span class="min-w-0 break-words text-slate-800">{{ selectedEvent.lokasi }}</span>
+                                </div>
+                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                                    <span class="font-bold text-slate-500">PIC:</span>
+                                    <span class="min-w-0 break-words text-slate-800">{{ selectedEvent.pic }}</span>
+                                </div>
+                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                                    <span class="font-bold text-slate-500">ANGGARAN:</span>
+                                    <span class="min-w-0 font-bold text-emerald-700">{{ selectedEvent.anggaran }}</span>
+                                </div>
+                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
+                                    <span class="font-bold text-slate-500">KUOTA:</span>
+                                    <span class="min-w-0 text-slate-800">{{ selectedEvent.peserta_count }} / {{ selectedEvent.kuota_peserta }} Peserta</span>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-400 w-16">TEMPAT:</span>
-                                <span class="text-slate-800 truncate" :title="selectedEvent.lokasi">{{ selectedEvent.lokasi }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-400 w-16">PIC:</span>
-                                <span class="text-slate-800 truncate">{{ selectedEvent.pic }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-400 w-16">ANGGARAN:</span>
-                                <span class="font-bold text-emerald-700">{{ selectedEvent.anggaran }}</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-400 w-16">KUOTA:</span>
-                                <span class="text-slate-800">{{ selectedEvent.peserta_count }} / {{ selectedEvent.kuota_peserta }} Peserta</span>
-                            </div>
+
+                            <Link :href="route('admin.kegiatan.show', selectedEvent.id)"
+                                  class="min-h-11 w-full inline-flex items-center justify-center gap-1 rounded-xl bg-[#9F0E0F] py-2.5 text-xs font-semibold text-white transition hover:bg-[#850C0D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9F0E0F]">
+                                <span>Buka Rincian Kegiatan</span>
+                                <ChevronRightIcon class="h-4 w-4" />
+                            </Link>
                         </div>
 
-                        <Link :href="route('admin.kegiatan.show', selectedEvent.id)"
-                              class="w-full inline-flex items-center justify-center gap-1 py-2.5 rounded-xl bg-[#9F0E0F] hover:bg-[#850C0D] text-white font-semibold text-xs transition shadow-xs">
-                            <span>Buka Rincian Kegiatan</span>
-                            <ChevronRightIcon class="w-4 h-4" />
-                        </Link>
-                    </div>
-
-                    <!-- State Jika Tidak Ada Event di Tanggal Terpilih -->
-                    <div v-else class="py-10 text-center text-slate-400 text-xs space-y-2">
-                        <CalenderIcon class="w-8 h-8 mx-auto text-slate-300" />
-                        <p class="font-semibold text-slate-600">Tidak ada agenda pada tanggal ini</p>
-                        <p class="text-[11px] text-slate-400">Pilih tanggal atau kegiatan lain pada kalender untuk melihat rincian.</p>
+                        <!-- State Jika Tidak Ada Event di Tanggal Terpilih -->
+                        <div v-else class="space-y-2 py-6 text-center text-xs text-slate-500">
+                            <CalenderIcon class="mx-auto h-8 w-8 text-slate-300" />
+                            <p class="font-semibold text-slate-700">Tidak ada agenda pada tanggal ini</p>
+                            <p class="text-[11px] text-slate-500">Pilih tanggal atau kegiatan lain pada kalender untuk melihat rincian.</p>
+                        </div>
                     </div>
                 </div>
             </div>

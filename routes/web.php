@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityDescriptionImageController;
 use App\Http\Controllers\Admin as AdminCtrl;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\User as UserCtrl;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +37,11 @@ Route::get('/description-images/{ownerType}/{ownerId}/{filename}', [ActivityDesc
     ->middleware('auth:web,admin')
     ->where(['ownerType' => 'users|admins', 'ownerId' => '[0-9]+', 'filename' => '[A-Fa-f0-9-]+\.(jpg|png|webp)'])
     ->name('description-images.show');
+
+Route::get('/profile-photos/{ownerType}/{ownerId}/{filename}', [ProfilePhotoController::class, 'show'])
+    ->middleware('auth:web,admin')
+    ->where(['ownerType' => 'users|admins', 'ownerId' => '[0-9]+', 'filename' => '[A-Fa-f0-9-]+\.(jpg|png|webp)'])
+    ->name('profile-photos.show');
 
 // User Protected Routes
 Route::middleware('auth:web')->name('user.')->group(function () {
@@ -74,6 +80,8 @@ Route::middleware('auth:web')->name('user.')->group(function () {
 // Admin Protected Routes
 Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminCtrl\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profil', [AdminCtrl\ProfileController::class, 'edit'])->name('profil.edit');
+    Route::put('/profil', [AdminCtrl\ProfileController::class, 'update'])->name('profil.update');
     Route::post('/description-images/admins', [ActivityDescriptionImageController::class, 'storeForAdmin'])->name('description-images.store');
 
     // Perencanaan & Anggaran

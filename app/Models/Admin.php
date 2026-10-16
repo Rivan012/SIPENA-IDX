@@ -18,6 +18,7 @@ class Admin extends Authenticatable
         'password',
         'no_telepon',
         'jabatan',
+        'profile_photo_path',
     ];
 
     protected $hidden = [

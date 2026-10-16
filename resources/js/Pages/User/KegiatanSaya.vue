@@ -1,5 +1,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faBan, faCircleInfo, faPenToSquare, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import UserLayout from '@/Layouts/UserLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
@@ -70,14 +72,18 @@ const deleteProposal = async (item) => {
                         <tbody class="divide-y divide-slate-100">
                             <tr v-for="item in kegiatanList.data" :key="item.id" class="hover:bg-slate-50/70 transition">
                                 <td class="py-3.5 px-4 max-w-xs">
-                                    <div class="font-bold text-slate-900 leading-snug">
-                                        <Link :href="route('user.kegiatan.show', item.id)" class="hover:text-[#680A10] transition">
+                                    <Link
+                                        :href="route('user.kegiatan.show', item.id)"
+                                        class="group block rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
+                                        :aria-label="`Buka rincian proposal ${item.nama_kegiatan}`"
+                                    >
+                                        <div class="font-bold text-slate-900 leading-snug group-hover:text-[#680A10] transition-colors">
                                             {{ item.nama_kegiatan }}
-                                        </Link>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 mt-1 inline-block">
-                                        {{ item.jenis_kegiatan }}
-                                    </span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 mt-1 inline-block">
+                                            {{ item.jenis_kegiatan }}
+                                        </span>
+                                    </Link>
                                 </td>
                                 <td class="py-3.5 px-4 whitespace-nowrap">
                                     <div class="font-semibold text-slate-800">
@@ -108,21 +114,41 @@ const deleteProposal = async (item) => {
                                     </p>
                                 </td>
                                 <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <Link :href="route('user.kegiatan.show', item.id)" class="font-semibold text-xs text-slate-600 hover:text-slate-900">
-                                            Rincian
+                                    <div class="flex items-center justify-end gap-1">
+                                        <Link
+                                            :href="route('user.kegiatan.show', item.id)"
+                                            :title="`Rincian ${item.nama_kegiatan}`"
+                                            :aria-label="`Buka rincian ${item.nama_kegiatan}`"
+                                            class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
+                                        >
+                                            <FontAwesomeIcon :icon="faCircleInfo" aria-hidden="true" />
                                         </Link>
-                                        <Link :href="route('user.kegiatan.edit', item.id)" class="font-semibold text-xs text-[#680A10] hover:underline">
-                                            Edit
+                                        <Link
+                                            :href="route('user.kegiatan.edit', item.id)"
+                                            :title="`Edit ${item.nama_kegiatan}`"
+                                            :aria-label="`Edit proposal ${item.nama_kegiatan}`"
+                                            class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-[#680A10] transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
+                                        >
+                                            <FontAwesomeIcon :icon="faPenToSquare" aria-hidden="true" />
                                         </Link>
-                                        <button v-if="!['dibatalkan', 'selesai'].includes(item.status)"
-                                                type="button" @click="cancelProposal(item)"
-                                                class="font-semibold text-xs text-amber-700 hover:underline">
-                                            Batalkan
+                                        <button
+                                            v-if="!['dibatalkan', 'selesai'].includes(item.status)"
+                                            type="button"
+                                            :title="`Batalkan ${item.nama_kegiatan}`"
+                                            :aria-label="`Batalkan proposal ${item.nama_kegiatan}`"
+                                            @click="cancelProposal(item)"
+                                            class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-700 transition-colors hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
+                                        >
+                                            <FontAwesomeIcon :icon="faBan" aria-hidden="true" />
                                         </button>
-                                        <button type="button" @click="deleteProposal(item)"
-                                                class="font-semibold text-xs text-red-600 hover:underline">
-                                            Hapus
+                                        <button
+                                            type="button"
+                                            :title="`Hapus ${item.nama_kegiatan}`"
+                                            :aria-label="`Hapus proposal ${item.nama_kegiatan}`"
+                                            @click="deleteProposal(item)"
+                                            class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
+                                        >
+                                            <FontAwesomeIcon :icon="faTrashCan" aria-hidden="true" />
                                         </button>
                                     </div>
                                 </td>

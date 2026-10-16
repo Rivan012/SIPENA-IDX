@@ -11,7 +11,9 @@ import {
     LogoutIcon,
     MenuIcon,
     ChevronRightIcon,
+    UserCircleIcon,
 } from '@/Icons';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 import { confirmDialog, showToast } from '@/Utils/sweetalert';
 
 defineProps({
@@ -197,6 +199,24 @@ const handleLogout = async () => {
                             </Link>
                         </nav>
                     </div>
+
+                    <div>
+                        <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-rose-200/80 uppercase">
+                            PENGATURAN AKUN
+                        </div>
+                        <nav class="space-y-1">
+                            <Link
+                                :href="route('admin.profil.edit')"
+                                :class="[
+                                    'menu-item',
+                                    isCurrent('admin.profil.*') ? 'menu-item-active' : 'menu-item-inactive'
+                                ]"
+                            >
+                                <UserCircleIcon class="w-4 h-4 shrink-0" />
+                                <span class="truncate">Profil Saya</span>
+                            </Link>
+                        </nav>
+                    </div>
                 </div>
             </div>
 
@@ -204,7 +224,8 @@ const handleLogout = async () => {
             <div class="p-3 border-t border-white/10 bg-black/15">
                 <div class="flex items-center justify-between p-2 rounded-xl bg-black/20 border border-white/10 shadow-2xs">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-8 h-8 rounded-lg bg-white text-[#9F0E0F] font-black text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                        <img v-if="authAdmin.profile_photo_url" :src="authAdmin.profile_photo_url" :alt="`Foto profil ${authAdmin.name}`" class="h-8 w-8 shrink-0 rounded-lg object-cover" />
+                        <div v-else class="w-8 h-8 rounded-lg bg-white text-[#9F0E0F] font-black text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
                             {{ (authAdmin.name || 'A').substring(0, 2) }}
                         </div>
                         <div class="leading-tight truncate">
@@ -248,11 +269,13 @@ const handleLogout = async () => {
 
                 <!-- Right Header Actions -->
                 <div class="flex items-center gap-3 sm:gap-4">
+                    <ThemeToggle />
                                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
                     <!-- User Card -->
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-[#85131B] text-white text-xs font-bold flex items-center justify-center uppercase shadow-2xs">
+                        <img v-if="authAdmin.profile_photo_url" :src="authAdmin.profile_photo_url" :alt="`Foto profil ${authAdmin.name}`" class="h-8 w-8 rounded-full object-cover" />
+                        <div v-else class="w-8 h-8 rounded-full bg-[#85131B] text-white text-xs font-bold flex items-center justify-center uppercase shadow-2xs">
                             {{ (authAdmin.name || 'A').substring(0, 2) }}
                         </div>
                         <div class="hidden sm:block text-left leading-tight">

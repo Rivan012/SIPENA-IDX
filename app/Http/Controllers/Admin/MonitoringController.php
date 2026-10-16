@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
-use App\Models\Kegiatan;
 use App\Models\Peserta;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MonitoringController extends Controller
@@ -72,15 +70,15 @@ class MonitoringController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="data-pengguna-peserta-' . date('Ymd-His') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="data-mitra-'.date('Ymd-His').'.csv"',
         ];
 
         return response()->stream(function () use ($users) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($handle, [
                 'ID',
-                'Nama Lengkap',
+                'Nama Mitra',
                 'Email',
                 'No. Telepon',
                 'Total Kegiatan Diikuti',

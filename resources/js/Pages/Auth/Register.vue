@@ -1,5 +1,6 @@
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 const form = useForm({
     name: '',
@@ -17,13 +18,14 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+    <div class="relative min-h-screen bg-slate-100 flex items-center justify-center p-4">
+        <ThemeToggle class="absolute right-4 top-4" />
         <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
             <div class="bg-gradient-to-r from-[#680A10] to-[#85131B] p-6 text-white text-center">
                 <div class="bg-white p-2 rounded-xl inline-block mb-3 shadow-xs">
                     <img src="/images/logo.svg" alt="SIPENA IDX" class="h-10 w-auto" />
                 </div>
-                <h1 class="text-xl font-bold">Daftar Akun Peserta</h1>
+                <h1 class="text-xl font-bold">Daftar Mitra</h1>
                 <p class="text-xs text-rose-100/90 mt-1">Sistem Informasi Pengelolaan Edukasi Pasar Modal</p>
             </div>
 

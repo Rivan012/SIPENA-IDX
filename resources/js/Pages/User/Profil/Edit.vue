@@ -1,5 +1,6 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
+import ProfilePhotoField from '@/Components/ProfilePhotoField.vue';
 import UserLayout from '@/Layouts/UserLayout.vue';
 
 const props = defineProps({
@@ -10,12 +11,14 @@ const form = useForm({
     name: props.user?.name || '',
     email: props.user?.email || '',
     no_telepon: props.user?.no_telepon || '',
+    avatar: null,
     password: '',
     password_confirmation: '',
 });
 
 const submit = () => {
     form.put(route('user.profil.update'), {
+        onSuccess: () => form.reset('avatar'),
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -28,11 +31,18 @@ const submit = () => {
         <div class="max-w-2xl mx-auto space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Pengaturan Profil</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Kelola informasi data diri akun peserta Anda.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Kelola informasi akun mitra Anda.</p>
             </div>
 
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
                 <form @submit.prevent="submit" class="space-y-4">
+                    <ProfilePhotoField
+                        id="user-profile-photo"
+                        v-model="form.avatar"
+                        :current-url="user.profile_photo_url"
+                        :error="form.errors.avatar"
+                    />
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap</label>
                         <input v-model="form.name" type="text" required

@@ -85,7 +85,7 @@ Aplikasi dapat diakses melalui browser pada: `http://localhost:8000`
 
 | Role | Email | Password | Akses |
 |---|---|---|---|
-| **Administrator** | `admin@bei.co.id` | `password123` | `/login` (dialihkan ke Dashboard Admin) |
+| **Administrator** | `admin@idx-bengkulu.id` | `password123` | `/login` (dialihkan ke Dashboard Admin) |
 | **Peserta (User)** | `peserta@example.com` | `password123` | `/login` (dialihkan ke Dashboard Peserta) |
 
 ---

@@ -19,8 +19,8 @@ const authUser = computed(() => page.props.auth?.user || {});
 </script>
 
 <template>
-    <UserLayout title="Dashboard Maker">
-        <Head title="Dashboard Maker — SIPENA IDX" />
+    <UserLayout title="Dashboard Mitra">
+        <Head title="Dashboard Mitra — SIPENA IDX" />
 
         <div class="space-y-6">
             <!-- HERO BANNER (TailAdmin Highlight Banner with IDX Tone) -->
@@ -35,7 +35,7 @@ const authUser = computed(() => page.props.auth?.user || {});
                         Selamat Datang, {{ authUser.name }}!
                     </h1>
                     <p class="text-xs sm:text-sm text-rose-100/90 leading-relaxed">
-                        Tingkatkan literasi investasi Anda melalui sekolah pasar modal dan workshop resmi BEI secara gratis dan bersertifikat.
+                        Ajukan dan pantau proposal kegiatan edukasi pasar modal bersama BEI Bengkulu.
                     </p>
 
                     <div class="pt-2 flex flex-wrap gap-2.5">

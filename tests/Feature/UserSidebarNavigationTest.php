@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -58,6 +60,49 @@ class UserSidebarNavigationTest extends TestCase
             'name' => 'Peserta Update',
             'email' => 'peserta-updated@example.com',
         ]);
+    }
+
+    public function test_user_can_upload_and_view_their_private_profile_photo(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->user, 'web')->put(route('user.profil.update'), [
+            'name' => $this->user->name,
+            'email' => $this->user->email,
+            'no_telepon' => $this->user->no_telepon,
+            'avatar' => UploadedFile::fake()->image('profile.png'),
+        ]);
+
+        $response->assertRedirect(route('user.profil.edit'));
+        $this->user->refresh();
+        $this->assertStringStartsWith("profile-photos/users/{$this->user->id}/", $this->user->profile_photo_path);
+        Storage::disk('local')->assertExists($this->user->profile_photo_path);
+
+        $photoUrl = route('profile-photos.show', [
+            'ownerType' => 'users',
+            'ownerId' => $this->user->id,
+            'filename' => basename($this->user->profile_photo_path),
+        ]);
+
+        $this->get($photoUrl)->assertOk();
+
+        $otherUser = User::factory()->create();
+        $this->actingAs($otherUser, 'web')->get($photoUrl)->assertNotFound();
+    }
+
+    public function test_user_cannot_upload_an_unsupported_profile_photo(): void
+    {
+        Storage::fake('local');
+
+        $response = $this->actingAs($this->user, 'web')->put(route('user.profil.update'), [
+            'name' => $this->user->name,
+            'email' => $this->user->email,
+            'no_telepon' => $this->user->no_telepon,
+            'avatar' => UploadedFile::fake()->create('profile.svg', 1, 'image/svg+xml'),
+        ]);
+
+        $response->assertSessionHasErrors('avatar');
+        $this->assertNull($this->user->fresh()->profile_photo_path);
     }
 
     public function test_user_can_access_laporan_and_notifikasi(): void

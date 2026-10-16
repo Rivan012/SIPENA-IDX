@@ -102,7 +102,7 @@ const submitMakerDecision = () => {
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">MENUNGGU REVIEW</span>
                     <span class="text-2xl font-bold text-amber-600 mt-1 block">{{ stats.pending_total }}</span>
-                    <span class="text-[11px] text-slate-500 mt-0.5 block">Maker dan anggaran</span>
+                    <span class="text-[11px] text-slate-500 mt-0.5 block">Mitra dan anggaran</span>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ANGGARAN DALAM REVIEW</span>
@@ -126,7 +126,7 @@ const submitMakerDecision = () => {
                     <input v-model="search"
                            @keyup.enter="handleFilter"
                            type="text"
-                           placeholder="Cari nomor, nama kegiatan, maker..."
+                           placeholder="Cari nomor, nama kegiatan, mitra..."
                            class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#680A10]/20" />
                     <button type="button" @click="handleFilter"
                             class="px-4 py-2 bg-[#680A10] text-white text-xs font-semibold rounded-xl hover:bg-[#54080D]">
@@ -305,7 +305,7 @@ const submitMakerDecision = () => {
             <div class="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h3 class="text-base font-bold text-slate-900">{{ makerForm.status === 'disetujui' ? 'Setujui Proposal Maker' : makerForm.status === 'revisi' ? 'Minta Revisi Proposal' : 'Tolak Proposal Maker' }}</h3>
+                        <h3 class="text-base font-bold text-slate-900">{{ makerForm.status === 'disetujui' ? 'Setujui Proposal Mitra' : makerForm.status === 'revisi' ? 'Minta Revisi Proposal' : 'Tolak Proposal Mitra' }}</h3>
                         <p class="text-xs text-slate-500 mt-1">{{ makerTarget?.nama_kegiatan }}</p>
                     </div>
                     <button type="button" @click="showMakerModal = false" aria-label="Tutup dialog" class="text-slate-400 hover:text-slate-700">&times;</button>

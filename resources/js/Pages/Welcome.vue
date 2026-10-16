@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 // Filter & Search State
 const searchQuery = ref('');
@@ -258,13 +259,15 @@ const closeModal = () => {
                     <a href="#kontak" class="hover:text-[#85131B] transition-colors focus-visible:outline-2 focus-visible:outline-[#85131B]">Kontak Kantor</a>
                 </nav>
 
+                <ThemeToggle />
+
                 <!-- Auth Navigation -->
                 <div class="hidden sm:flex items-center gap-2.5">
                     <Link :href="route('login')" class="text-xs font-bold text-slate-700 hover:text-slate-900 px-3.5 py-2.5 rounded-md border border-slate-300 hover:bg-slate-50 transition-colors focus-visible:ring-2 focus-visible:ring-[#85131B]">
                         Masuk Portal
                     </Link>
                     <Link :href="route('register')" class="text-xs font-bold text-white bg-[#85131B] hover:bg-[#680A10] px-4 py-2.5 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#85131B]">
-                        Daftar Peserta
+                        Daftar Mitra
                     </Link>
                 </div>
 
@@ -273,7 +276,8 @@ const closeModal = () => {
                     @click="mobileMenuOpen = !mobileMenuOpen"
                     type="button"
                     class="md:hidden p-2 rounded-md text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#85131B]"
-                    aria-label="Buka menu navigasi"
+                    :aria-expanded="mobileMenuOpen"
+                    :aria-label="mobileMenuOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi'"
                 >
                     <svg v-if="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -293,63 +297,45 @@ const closeModal = () => {
                 <a @click="mobileMenuOpen = false" href="#kontak" class="block py-2 text-slate-800">Kontak Kantor</a>
                 <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">
                     <Link :href="route('login')" class="w-full text-center py-2.5 text-slate-800 border border-slate-300 rounded-md">Masuk Portal</Link>
-                    <Link :href="route('register')" class="w-full text-center py-2.5 font-bold text-white bg-[#85131B] rounded-md">Daftar Peserta</Link>
+                    <Link :href="route('register')" class="w-full text-center py-2.5 font-bold text-white bg-[#85131B] rounded-md">Daftar Mitra</Link>
                 </div>
             </div>
         </header>
 
         <!-- MAIN EDITORIAL CONTENT -->
         <main id="beranda">
-            <!-- HERO MASTHEAD: Authoritative, Institutional, Asymmetrical -->
-            <section class="border-b border-slate-200 bg-slate-50/60">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <!-- Headline & Statement -->
-                        <div class="lg:col-span-8 space-y-4">
-                            <div class="text-xs font-bold uppercase tracking-widest text-[#85131B]">
-                                Bursa Efek Indonesia Kantor Perwakilan Bengkulu
-                            </div>
-                            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
-                                Sistem Informasi Perencanaan & Edukasi Pasar Modal Bengkulu
-                            </h1>
-                            <p class="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl">
-                                Akses terpusat bagi masyarakat, mahasiswa, akademisi, dan investor di Provinsi Bengkulu untuk mengikuti Sekolah Pasar Modal (SPM), webinar investasi syariah, serta sosialisasi literasi keuangan resmi yang diselenggarakan BEI bersama perusahaan efek mitra.
-                            </p>
-                            <div class="pt-2 flex flex-wrap items-center gap-3">
-                                <a
-                                    href="#jadwal"
-                                    class="px-5 py-2.5 bg-[#85131B] hover:bg-[#680A10] text-white text-xs font-bold rounded-md shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#85131B]"
-                                >
-                                    Periksa Jadwal Kegiatan
-                                </a>
-                                <Link
-                                    :href="route('register')"
-                                    class="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-md border border-slate-300 transition-colors focus-visible:ring-2 focus-visible:ring-[#85131B]"
-                                >
-                                    Daftar Akun Peserta
-                                </Link>
-                            </div>
-                        </div>
+            <section class="relative isolate min-h-[470px] overflow-hidden bg-slate-950 sm:min-h-[520px] lg:min-h-[560px]">
+                <img
+                    src="/images/auth-illustration.png"
+                    alt="Ilustrasi kegiatan edukasi pasar modal"
+                    class="absolute inset-0 h-full w-full object-cover object-center"
+                />
+                <div aria-hidden="true" class="absolute inset-0 bg-slate-950/80"></div>
 
-                        <!-- Institutional Info Panel -->
-                        <div class="lg:col-span-4 bg-white border border-slate-300 rounded-lg p-5 shadow-xs">
-                            <div class="font-bold text-xs uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-2 mb-3">
-                                Layanan Edukasi KP BEI Bengkulu
-                            </div>
-                            <div class="space-y-3 text-xs text-slate-700">
-                                <div>
-                                    <div class="font-semibold text-slate-900">Sekolah Pasar Modal (SPM)</div>
-                                    <div class="text-slate-600 mt-0.5">Pelatihan berjenjang Level 1 dan Level 2 bersertifikat resmi.</div>
-                                </div>
-                                <div class="border-t border-slate-100 pt-2">
-                                    <div class="font-semibold text-slate-900">Galeri Investasi Kampus</div>
-                                    <div class="text-slate-600 mt-0.5">Kerja sama 3 pilar: BEI, perguruan tinggi di Bengkulu, dan sekuritas.</div>
-                                </div>
-                                <div class="border-t border-slate-100 pt-2">
-                                    <div class="font-semibold text-slate-900">Edukasi Publik Inklusif</div>
-                                    <div class="text-slate-600 mt-0.5">Sosialisasi waspada investasi bodong dan pengenalan saham syariah.</div>
-                                </div>
-                            </div>
+                <div class="relative mx-auto flex min-h-[inherit] max-w-7xl items-end px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+                    <div class="max-w-4xl space-y-5">
+                        <p class="text-xs font-bold uppercase tracking-widest text-red-200">
+                            Bursa Efek Indonesia · Kantor Perwakilan Bengkulu
+                        </p>
+                        <h1 class="text-4xl font-black leading-tight text-white sm:text-5xl">
+                            SIPENA Bengkulu
+                        </h1>
+                        <p class="max-w-2xl text-sm leading-relaxed text-white/90 sm:text-base">
+                            Temukan Sekolah Pasar Modal, edukasi investasi syariah, dan kegiatan literasi pasar modal dari BEI Bengkulu.
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3 pt-1">
+                            <a
+                                href="#jadwal"
+                                class="inline-flex min-h-11 items-center rounded-md bg-[#9F0E0F] px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#680A10] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                            >
+                                Lihat Jadwal Kegiatan
+                            </a>
+                            <Link
+                                :href="route('register')"
+                                class="inline-flex min-h-11 items-center rounded-md border border-white/70 bg-slate-950/30 px-5 py-2.5 text-xs font-bold text-white transition-colors hover:bg-white hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                            >
+                                Daftar Mitra
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -364,7 +350,7 @@ const closeModal = () => {
                             Kalender Pelaksanaan
                         </div>
                         <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-                            Jadwal Sosialisasi & Edukasi Mendatang
+                            Jadwal Edukasi Pasar Modal
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-600 mt-1">
                             Pilih sesi pembelajaran tatap muka maupun daring yang sedang membuka pendaftaran.
@@ -379,7 +365,7 @@ const closeModal = () => {
                             v-model="searchQuery"
                             type="search"
                             placeholder="Cari topik, narasumber, atau lokasi..."
-                            class="w-full px-3 py-2 border border-slate-300 rounded-md text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#85131B]"
+                            class="min-h-11 w-full rounded-md border border-slate-300 px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
                         />
                     </div>
                 </div>
@@ -394,7 +380,7 @@ const closeModal = () => {
                             @click="selectedCategory = cat"
                             type="button"
                             :class="[
-                                'px-3 py-1.5 rounded text-xs font-bold transition-colors cursor-pointer',
+                                'min-h-11 rounded-md px-3 py-2 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]',
                                 selectedCategory === cat
                                     ? 'bg-[#85131B] text-white'
                                     : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-300'
@@ -410,7 +396,7 @@ const closeModal = () => {
                             <span class="text-slate-500 font-medium">Format:</span>
                             <select
                                 v-model="selectedFormat"
-                                class="bg-white border border-slate-300 rounded px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#85131B]"
+                                class="min-h-11 bg-white border border-slate-300 rounded-md px-3 py-2 text-xs font-semibold text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
                             >
                                 <option v-for="f in formatOptions" :key="f" :value="f">{{ f }}</option>
                             </select>
@@ -443,7 +429,7 @@ const closeModal = () => {
                             </div>
 
                             <!-- Details -->
-                            <div class="space-y-1">
+                            <div class="min-w-0 space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="px-2 py-0.5 text-[11px] font-bold bg-slate-100 text-slate-700 rounded border border-slate-200">
                                         {{ item.kategori }}
@@ -464,8 +450,8 @@ const closeModal = () => {
                                     {{ item.judul }}
                                 </h3>
                                 <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-                                    <div><strong>Lokasi:</strong> {{ item.lokasi }}</div>
-                                    <div><strong>Mitra:</strong> {{ item.mitra }}</div>
+                                    <div class="break-words"><strong>Lokasi:</strong> {{ item.lokasi }}</div>
+                                    <div class="break-words"><strong>Mitra:</strong> {{ item.mitra }}</div>
                                 </div>
                             </div>
                         </div>
@@ -489,7 +475,7 @@ const closeModal = () => {
                             <button
                                 @click="openModal(item)"
                                 type="button"
-                                class="px-3.5 py-1.5 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded shadow-2xs transition-colors cursor-pointer"
+                                class="min-h-11 px-3.5 py-2 text-xs font-bold text-slate-800 bg-white hover:bg-slate-100 border border-slate-300 rounded-md shadow-2xs transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#85131B]"
                             >
                                 Rincian Sesi
                             </button>
@@ -531,8 +517,8 @@ const closeModal = () => {
                     </div>
 
                     <!-- Syllabus Table -->
-                    <div class="bg-white border border-slate-200 rounded-lg overflow-x-auto shadow-xs">
-                        <table class="w-full text-left text-xs border-collapse">
+                    <div class="syllabus-scroll overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-xs">
+                        <table class="syllabus-table w-full border-collapse text-left text-xs">
                             <thead>
                                 <tr class="bg-slate-100 border-b border-slate-200 text-slate-900 font-bold uppercase tracking-wider text-[11px]">
                                     <th class="p-4 w-44">Program</th>
@@ -543,58 +529,58 @@ const closeModal = () => {
                             </thead>
                             <tbody class="divide-y divide-slate-200 text-slate-700">
                                 <tr>
-                                    <td class="p-4 font-bold text-slate-900">
+                                    <td data-label="Program" class="p-4 font-bold text-slate-900">
                                         Dasar Pasar Modal
                                     </td>
-                                    <td class="p-4">
+                                    <td data-label="Tingkat peserta" class="p-4">
                                         Umum & Pemula
                                     </td>
-                                    <td class="p-4 leading-relaxed">
+                                    <td data-label="Cakupan kompetensi" class="p-4 leading-relaxed">
                                         Pengenalan OJK, BEI, KPEI, KSEI; konsep dasar investasi versus spekulasi; instrumen saham, reksa dana, dan obligasi; pencegahan penipuan berkedok investasi ilegal.
                                     </td>
-                                    <td class="p-4 font-medium text-slate-800">
+                                    <td data-label="Luaran & sertifikasi" class="p-4 font-medium text-slate-800">
                                         Pemahaman literasi keuangan awal
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="p-4 font-bold text-slate-900">
+                                    <td data-label="Program" class="p-4 font-bold text-slate-900">
                                         Sekolah Pasar Modal Level 1
                                     </td>
-                                    <td class="p-4">
+                                    <td data-label="Tingkat peserta" class="p-4">
                                         Calon Investor Baru
                                     </td>
-                                    <td class="p-4 leading-relaxed">
+                                    <td data-label="Cakupan kompetensi" class="p-4 leading-relaxed">
                                         Mekanisme transaksi bursa efek, siklus settlement T+2, struktur biaya transaksi, hak pemegang saham (RUPS & dividen), serta pembukaan Rekening Dana Nasabah (RDN).
                                     </td>
-                                    <td class="p-4 font-medium text-slate-800">
+                                    <td data-label="Luaran & sertifikasi" class="p-4 font-medium text-slate-800">
                                         Sertifikat SPM 1 & Akun Efek Aktif
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="p-4 font-bold text-slate-900">
+                                    <td data-label="Program" class="p-4 font-bold text-slate-900">
                                         Sekolah Pasar Modal Level 2
                                     </td>
-                                    <td class="p-4">
+                                    <td data-label="Tingkat peserta" class="p-4">
                                         Investor Retail Aktif
                                     </td>
-                                    <td class="p-4 leading-relaxed">
+                                    <td data-label="Cakupan kompetensi" class="p-4 leading-relaxed">
                                         Analisis fundamental laporan keuangan, evaluasi profitabilitas dan solvabilitas emiten, pengenalan analisis teknikal candlestick, serta penyusunan portofolio jangka panjang.
                                     </td>
-                                    <td class="p-4 font-medium text-slate-800">
+                                    <td data-label="Luaran & sertifikasi" class="p-4 font-medium text-slate-800">
                                         Sertifikat Kelulusan SPM Level 2
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="p-4 font-bold text-slate-900">
+                                    <td data-label="Program" class="p-4 font-bold text-slate-900">
                                         Pasar Modal Syariah
                                     </td>
-                                    <td class="p-4">
+                                    <td data-label="Tingkat peserta" class="p-4">
                                         Peminat Investasi Syariah
                                     </td>
-                                    <td class="p-4 leading-relaxed">
+                                    <td data-label="Cakupan kompetensi" class="p-4 leading-relaxed">
                                         Fatwa DSN-MUI tentang pasar modal, metode penyaringan saham syariah (DES), indeks saham syariah (ISSI, JII), dan mekanisme transaksi tanpa margin/short-selling di SOTS.
                                     </td>
-                                    <td class="p-4 font-medium text-slate-800">
+                                    <td data-label="Luaran & sertifikasi" class="p-4 font-medium text-slate-800">
                                         Sertifikat Edukasi Syariah BEI
                                     </td>
                                 </tr>
@@ -686,9 +672,9 @@ const closeModal = () => {
             </section>
 
             <!-- KONTAK & LOKASI KANTOR PERWAKILAN -->
-            <section id="kontak" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-                <div class="bg-slate-900 text-white rounded-xl p-6 sm:p-10 border border-slate-800">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <section id="kontak" class="bg-slate-900 text-white">
+                <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+                    <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:items-center">
                         <div class="lg:col-span-7 space-y-3">
                             <div class="text-xs font-bold uppercase tracking-wider text-red-400">
                                 Pelayanan Publik & Konsultasi
@@ -706,14 +692,14 @@ const closeModal = () => {
                             </div>
                         </div>
 
-                        <div class="lg:col-span-5 bg-slate-800/80 border border-slate-700 rounded-lg p-5 text-xs space-y-4">
-                            <div class="font-bold text-white uppercase tracking-wider border-b border-slate-700 pb-2">
+                        <div class="space-y-4 border-t border-white/20 pt-6 text-xs sm:pt-8 lg:col-span-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+                            <div class="font-bold text-white uppercase tracking-wider">
                                 Akses Portal SIPENA
                             </div>
-                            <p class="text-slate-300">
-                                Daftarkan akun peserta Anda untuk melakukan registrasi kegiatan secara mandiri dan mengunduh sertifikat pelatihan.
+                            <p class="max-w-md text-slate-300">
+                                Daftarkan akun mitra untuk mengajukan proposal dan mengikuti kegiatan edukasi BEI.
                             </p>
-                            <div class="flex flex-col sm:flex-row gap-2.5">
+                            <div class="flex flex-col gap-2.5 sm:flex-row">
                                 <Link
                                     :href="route('register')"
                                     class="w-full text-center px-4 py-2.5 bg-[#85131B] hover:bg-[#680A10] text-white font-bold rounded shadow-xs"
@@ -781,7 +767,7 @@ const closeModal = () => {
                     <div class="flex items-center gap-4">
                         <Link :href="route('login')" class="hover:text-slate-300">Masuk ke Sistem</Link>
                         <span>|</span>
-                        <Link :href="route('register')" class="hover:text-slate-300">Pendaftaran Akun</Link>
+                        <Link :href="route('register')" class="hover:text-slate-300">Pendaftaran Mitra</Link>
                     </div>
                 </div>
             </div>

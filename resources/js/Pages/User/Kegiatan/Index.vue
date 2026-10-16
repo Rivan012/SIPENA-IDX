@@ -65,8 +65,8 @@ const batal = async (keg) => {
             <!-- Header & Search -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Katalog Kegiatan Maker</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Kegiatan yang diajukan oleh maker atau mitra dan siap untuk dipelajari, diikuti, atau ditinjau admin.</p>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Proposal Mitra</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">Pantau proposal yang Anda ajukan, termasuk status review dan jadwal kegiatan.</p>
                 </div>
 
                 <div class="flex items-center gap-2">

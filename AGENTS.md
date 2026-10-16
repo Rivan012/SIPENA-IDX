@@ -15,6 +15,8 @@ Before relying on a package's API, confirm its installed version:
 
 This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
+For activity-description rich text, HTML sanitization, or uploaded description images, follow [.github/instructions/activity-rich-text.instructions.md](.github/instructions/activity-rich-text.instructions.md). It documents the existing implementation and its security and testing requirements.
+
 ## Conventions
 
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
@@ -156,3 +158,14 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Run `vendor/bin/phpunit` to call the test runner directly. It accepts the same file path and `--filter=testName` arguments.
 
 </laravel-boost-guidelines>
+
+<!-- antislop:start -->
+## antislop
+For UI, copy, people, mobile layout, or code comments work, read the user-level `antislop` core and the relevant skill:
+- UI / visual: `antislop-ui`
+- People and accessibility: `antislop-human`
+- Mobile / responsive: `antislop-layoutmobile`
+- Copy and text: `antislop-copywriting`
+- Code comments: `antislop-code`
+Apply the rules during implementation unless the user asks for an after-the-fact audit.
+<!-- antislop:end -->

@@ -42,7 +42,7 @@ const submit = () => {
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Ajukan Kegiatan Baru</h1>
-                    <p class="text-xs text-slate-500 mt-0.5">Form ini untuk maker atau mitra yang ingin mengajukan program edukasi atau kegiatan bersama BEI.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Form ini untuk mitra yang ingin mengajukan program edukasi atau kegiatan bersama BEI.</p>
                 </div>
 
                 <form @submit.prevent="submit" class="space-y-4">

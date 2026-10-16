@@ -1,5 +1,6 @@
 <script setup>
 import { useForm, Link, Head } from '@inertiajs/vue3';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 const form = useForm({
     email: '',
@@ -17,7 +18,8 @@ const submit = () => {
 <template>
     <Head title="Masuk — SIPENA IDX Bengkulu" />
 
-    <div class="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-800 antialiased selection:bg-[#85131B] selection:text-white">
+    <div class="relative min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-800 antialiased selection:bg-[#85131B] selection:text-white">
+        <ThemeToggle class="absolute right-4 top-4" />
 
         <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
             <div class="bg-white py-8 px-6 sm:px-8 border border-slate-300 rounded-xl shadow-xs">
@@ -98,9 +100,9 @@ const submit = () => {
                     <!-- Footer Info -->
                     <div class="pt-4 border-t border-slate-200 text-center space-y-2 text-xs text-slate-600">
                         <div>
-                            Belum memiliki akun peserta?
+                            Belum terdaftar sebagai mitra?
                             <Link :href="route('register')" class="text-[#85131B] font-bold hover:underline">
-                                Daftar Akun Peserta
+                                Daftar Mitra
                             </Link>
                         </div>
                         <div>

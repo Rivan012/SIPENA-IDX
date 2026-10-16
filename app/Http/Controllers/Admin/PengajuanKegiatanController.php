@@ -220,7 +220,7 @@ class PengajuanKegiatanController extends Controller
             'approval_processed_at' => now(),
         ]);
 
-        return back()->with('success', 'Status proposal maker berhasil diperbarui.');
+        return back()->with('success', 'Status proposal mitra berhasil diperbarui.');
     }
 
     public function export(Request $request): StreamedResponse
@@ -362,7 +362,7 @@ class PengajuanKegiatanController extends Controller
             return [
                 'id' => $item->source.':'.$item->source_id,
                 'source' => $item->source,
-                'source_label' => $item->source === 'maker' ? 'Maker' : 'Anggaran',
+                'source_label' => $item->source === 'maker' ? 'Mitra' : 'Anggaran',
                 'source_id' => (int) $item->source_id,
                 'identifier' => $item->source === 'maker'
                     ? 'MKR-'.sprintf('%05d', $item->source_id)

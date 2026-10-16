@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\PengajuanKegiatan;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,19 +39,33 @@ class HandleInertiaRequests extends Middleware
                     'name' => $admin->name,
                     'email' => $admin->email,
                     'jabatan' => $admin->jabatan,
+                    'profile_photo_url' => $admin->profile_photo_path
+                        ? route('profile-photos.show', [
+                            'ownerType' => 'admins',
+                            'ownerId' => $admin->id,
+                            'filename' => basename($admin->profile_photo_path),
+                        ], false)
+                        : null,
                 ] : null,
                 'user' => $user ? [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'no_telepon' => $user->no_telepon,
+                    'profile_photo_url' => $user->profile_photo_path
+                        ? route('profile-photos.show', [
+                            'ownerType' => 'users',
+                            'ownerId' => $user->id,
+                            'filename' => basename($user->profile_photo_path),
+                        ], false)
+                        : null,
                 ] : null,
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'pendingApprovalCount' => fn () => rescue(fn () => \App\Models\PengajuanKegiatan::whereIn('status', ['diajukan', 'diproses'])->count(), 0, false),
+            'pendingApprovalCount' => fn () => rescue(fn () => PengajuanKegiatan::whereIn('status', ['diajukan', 'diproses'])->count(), 0, false),
             'userUnreadCount' => fn () => rescue(fn () => $user ? $user->notifikasi()->where('is_read', false)->count() : 0, 0, false),
         ];
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
+use App\Support\ActivityDescriptionSanitizer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -11,6 +12,8 @@ use Inertia\Response;
 
 class KalenderController extends Controller
 {
+    public function __construct(private readonly ActivityDescriptionSanitizer $descriptionSanitizer) {}
+
     public const BULAN_ID = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
         5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
@@ -25,9 +28,9 @@ class KalenderController extends Controller
 
     public function index(Request $request): Response
     {
-        if (!$request->has('year') && !$request->has('month')) {
+        if (! $request->has('year') && ! $request->has('month')) {
             $hasNow = Kegiatan::whereYear('tanggal', now()->year)->exists();
-            if (!$hasNow && Kegiatan::whereYear('tanggal', 2025)->exists()) {
+            if (! $hasNow && Kegiatan::whereYear('tanggal', 2025)->exists()) {
                 $year = 2025;
                 $month = 2;
             } else {
@@ -47,17 +50,8 @@ class KalenderController extends Controller
         $startOfMonth = $currentDate->copy()->startOfMonth();
         $endOfMonth = $currentDate->copy()->endOfMonth();
 
-        $gridStart = $startOfMonth->copy();
-        if ($gridStart->dayOfWeekIso > 1) {
-            $gridStart->subDays($gridStart->dayOfWeekIso - 1);
-        }
-
-        $gridEnd = $endOfMonth->copy();
-        if ($gridEnd->dayOfWeekIso < 6) {
-            $gridEnd->addDays(6 - $gridEnd->dayOfWeekIso);
-        } elseif ($gridEnd->dayOfWeekIso === 7) {
-            $gridEnd->addDays(6);
-        }
+        $gridStart = $startOfMonth->copy()->subDays($startOfMonth->dayOfWeek);
+        $gridEnd = $endOfMonth->copy()->addDays(6 - $endOfMonth->dayOfWeek);
 
         $statusFilter = $request->get('status');
         $eventsQuery = Kegiatan::query()
@@ -86,6 +80,13 @@ class KalenderController extends Controller
             $anggaranVal = $ev->rencanaKegiatan?->detailKegiatan?->anggaran ?? 14500000;
             $pesertaCount = $ev->peserta->count() ?: $ev->kuota_peserta;
             $persen = $ev->kuota_peserta > 0 ? min(100, round(($pesertaCount / $ev->kuota_peserta) * 100)) : 100;
+            $descriptionBanner = $this->descriptionSanitizer->firstImageUrl($ev->deskripsi);
+
+            if ($descriptionBanner === null) {
+                $descriptionBanner = $this->descriptionSanitizer->firstImageUrl(
+                    $ev->rencanaKegiatan?->detailKegiatan?->deskripsi,
+                );
+            }
 
             return [
                 'id' => $ev->id,
@@ -105,7 +106,8 @@ class KalenderController extends Controller
                 'status_class' => $ev->status_class,
                 'is_h1' => $hasH1,
                 'pic' => $picName,
-                'anggaran' => 'Rp ' . number_format($anggaranVal, 0, ',', '.'),
+                'anggaran' => 'Rp '.number_format($anggaranVal, 0, ',', '.'),
+                'description_banner' => $descriptionBanner,
             ];
         });
 
@@ -116,25 +118,24 @@ class KalenderController extends Controller
         $week = [];
 
         while ($cursor->lte($gridEnd)) {
-            if ($cursor->dayOfWeekIso <= 6) {
-                $dateKey = $cursor->format('Y-m-d');
-                $week[] = [
-                    'date_string' => $dateKey,
-                    'day' => $cursor->day,
-                    'is_current_month' => $cursor->month === $month,
-                    'is_today' => $cursor->isToday(),
-                    'events' => $eventsByDateClient->get($dateKey, collect())->values(),
-                ];
+            $dateKey = $cursor->format('Y-m-d');
+            $week[] = [
+                'date_string' => $dateKey,
+                'day' => $cursor->day,
+                'is_current_month' => $cursor->month === $month,
+                'is_today' => $cursor->isToday(),
+                'events' => $eventsByDateClient->get($dateKey, collect())->values(),
+            ];
 
-                if (count($week) === 6) {
-                    $calendarWeeks[] = $week;
-                    $week = [];
-                }
+            if (count($week) === 7) {
+                $calendarWeeks[] = $week;
+                $week = [];
             }
+
             $cursor->addDay();
         }
 
-        if (!empty($week)) {
+        if (! empty($week)) {
             $calendarWeeks[] = $week;
         }
 
@@ -146,7 +147,7 @@ class KalenderController extends Controller
             'selesai' => $allYearEvents->where('status', 'selesai')->count(),
         ];
 
-        $currentMonthName = (self::BULAN_ID[$month] ?? $currentDate->format('F')) . ' ' . $year;
+        $currentMonthName = (self::BULAN_ID[$month] ?? $currentDate->format('F')).' '.$year;
         $prevDate = $currentDate->copy()->subMonth();
         $nextDate = $currentDate->copy()->addMonth();
 

@@ -12,6 +12,7 @@ import {
     MenuIcon,
     ChevronRightIcon,
 } from '@/Icons';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 import { confirmDialog, showToast } from '@/Utils/sweetalert';
 
 defineProps({
@@ -113,7 +114,7 @@ const handleLogout = async () => {
                                 ]"
                             >
                                 <LayoutDashboardIcon class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Dashboard Maker</span>
+                                <span class="truncate">Dashboard Mitra</span>
                             </Link>
 
                             <Link
@@ -169,7 +170,7 @@ const handleLogout = async () => {
                             >
                                 <div class="flex items-center gap-3 min-w-0">
                                     <BellIcon class="w-4 h-4 shrink-0" />
-                                    <span class="truncate">Notifikasi Peserta</span>
+                                    <span class="truncate">Notifikasi Mitra</span>
                                 </div>
                                 <span
                                     v-if="unreadNotif > 0"
@@ -193,7 +194,7 @@ const handleLogout = async () => {
                                 ]"
                             >
                                 <UserCircleIcon class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Profil Saya</span>
+                                <span class="truncate">Profil Mitra</span>
                             </Link>
                         </nav>
                     </div>
@@ -204,11 +205,12 @@ const handleLogout = async () => {
             <div class="p-3 border-t border-white/10 bg-black/15">
                 <div class="flex items-center justify-between p-2 rounded-xl bg-black/20 border border-white/10 shadow-2xs">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div class="w-8 h-8 rounded-lg bg-white text-[#9F0E0F] font-black text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
+                        <img v-if="authUser.profile_photo_url" :src="authUser.profile_photo_url" :alt="`Foto profil ${authUser.name}`" class="h-8 w-8 shrink-0 rounded-lg object-cover" />
+                        <div v-else class="w-8 h-8 rounded-lg bg-white text-[#9F0E0F] font-black text-xs flex items-center justify-center shrink-0 uppercase shadow-2xs">
                             {{ (authUser.name || 'U').substring(0, 2) }}
                         </div>
                         <div class="leading-tight truncate">
-                            <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Maker' }}</div>
+                            <div class="text-xs font-bold text-white truncate">{{ authUser.name || 'Mitra' }}</div>
                             <div class="text-[10px] text-rose-200 truncate font-medium">SIPENA IDX</div>
                         </div>
                     </div>
@@ -248,6 +250,8 @@ const handleLogout = async () => {
 
                 <!-- Right Header Actions -->
                 <div class="flex items-center gap-3 sm:gap-4">
+                    <ThemeToggle />
+
                     <Link
                         :href="route('home')"
                         target="_blank"
@@ -273,7 +277,8 @@ const handleLogout = async () => {
 
                     <!-- User Avatar & Identity -->
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-[#85131B] text-white text-xs font-bold flex items-center justify-center uppercase shadow-2xs">
+                        <img v-if="authUser.profile_photo_url" :src="authUser.profile_photo_url" :alt="`Foto profil ${authUser.name}`" class="h-8 w-8 rounded-full object-cover" />
+                        <div v-else class="w-8 h-8 rounded-full bg-[#85131B] text-white text-xs font-bold flex items-center justify-center uppercase shadow-2xs">
                             {{ (authUser.name || 'U').substring(0, 2) }}
                         </div>
                         <div class="hidden sm:block text-left leading-tight">
