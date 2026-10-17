@@ -135,7 +135,7 @@ const hapus = async () => {
                     <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">KUOTA PESERTA</span>
                         <span class="font-bold text-slate-800 mt-1 block">
-                            {{ kegiatan.peserta?.length || 0 }} / {{ kegiatan.kuota_peserta || 100 }} Orang
+                            {{ kegiatan.kuota_peserta || 100 }} Orang
                         </span>
                     </div>
                 </div>

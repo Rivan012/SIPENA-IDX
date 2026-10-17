@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\PengajuanKegiatan;
+use App\Models\Kegiatan;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -65,7 +65,11 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
-            'pendingApprovalCount' => fn () => rescue(fn () => PengajuanKegiatan::whereIn('status', ['diajukan', 'diproses'])->count(), 0, false),
+            'pendingApprovalCount' => fn () => rescue(
+                fn () => Kegiatan::whereNotNull('user_id')->whereIn('status', ['menunggu_approval', 'diproses'])->count(),
+                0,
+                false,
+            ),
             'userUnreadCount' => fn () => rescue(fn () => $user ? $user->notifikasi()->where('is_read', false)->count() : 0, 0, false),
         ];
     }

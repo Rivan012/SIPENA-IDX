@@ -24,6 +24,7 @@ class UserSidebarNavigationTest extends TestCase
             'email' => 'peserta-nav@example.com',
             'password' => Hash::make('password123'),
             'no_telepon' => '081234567899',
+            'email_verified_at' => now(),
         ]);
     }
 

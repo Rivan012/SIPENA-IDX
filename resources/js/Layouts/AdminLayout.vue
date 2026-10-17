@@ -146,27 +146,15 @@ const handleLogout = async () => {
 
                     <div>
                         <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-rose-200/80 uppercase">
-                            PERENCANAAN & PENGAWASAN
+                            PENGAWASAN
                         </div>
                         <nav class="space-y-1">
-                            <!-- Anggaran & RKAP -->
-                            <Link
-                                :href="route('admin.rencana-kegiatan.index')"
-                                :class="[
-                                    'menu-item',
-                                    (isCurrent('admin.rencana-kegiatan.*') || isCurrent('admin.anggaran.*')) ? 'menu-item-active' : 'menu-item-inactive'
-                                ]"
-                            >
-                                <DocsIcon class="w-4 h-4 shrink-0" />
-                                <span class="truncate">Anggaran & RKAP</span>
-                            </Link>
-
                             <!-- Approval Proposal -->
                             <Link
                                 :href="route('admin.approval.index')"
                                 :class="[
                                     'menu-item justify-between',
-                                    (isCurrent('admin.approval.*') || isCurrent('admin.pengajuan.*')) ? 'menu-item-active' : 'menu-item-inactive'
+                                    isCurrent('admin.approval.*') ? 'menu-item-active' : 'menu-item-inactive'
                                 ]"
                             >
                                 <div class="flex items-center gap-3 min-w-0">
@@ -177,7 +165,7 @@ const handleLogout = async () => {
                                     v-if="pendingApproval > 0"
                                     :class="[
                                         'px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0',
-                                        (isCurrent('admin.approval.*') || isCurrent('admin.pengajuan.*'))
+                                        isCurrent('admin.approval.*')
                                             ? 'bg-[#9F0E0F] text-white'
                                             : 'bg-white text-[#9F0E0F]'
                                     ]"

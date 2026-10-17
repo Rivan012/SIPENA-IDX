@@ -469,7 +469,7 @@ const closeModal = () => {
                                     {{ item.status }}
                                 </div>
                                 <div class="text-[11px] text-slate-500">
-                                    {{ item.kuotaTerisi }} dari {{ item.kuotaTotal }} kursi terisi
+                                    Kuota: {{ item.kuotaTotal }} peserta
                                 </div>
                             </div>
                             <button
@@ -830,8 +830,8 @@ const closeModal = () => {
                         <span class="col-span-2 text-slate-800">{{ selectedAgenda.biaya }}</span>
                     </div>
                     <div class="grid grid-cols-3 gap-2 py-1 border-b border-slate-100">
-                        <span class="text-slate-500 font-medium">Status Kuota:</span>
-                        <span class="col-span-2 font-bold text-slate-900">{{ selectedAgenda.kuotaTerisi }} dari {{ selectedAgenda.kuotaTotal }} peserta terdaftar ({{ selectedAgenda.status }})</span>
+                        <span class="text-slate-500 font-medium">Kuota Peserta:</span>
+                        <span class="col-span-2 font-bold text-slate-900">{{ selectedAgenda.kuotaTotal }} peserta ({{ selectedAgenda.status }})</span>
                     </div>
                     <div class="pt-1">
                         <span class="text-slate-500 font-medium block mb-1">Materi & Pembahasan:</span>

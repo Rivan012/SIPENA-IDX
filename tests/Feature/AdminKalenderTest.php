@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Mail\KegiatanReminderMail;
 use App\Models\Admin;
-use App\Models\DetailKegiatan;
 use App\Models\Kegiatan;
-use App\Models\RencanaKegiatan;
+use App\Models\Peserta;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -153,49 +155,6 @@ class AdminKalenderTest extends TestCase
         );
     }
 
-    public function test_calendar_event_payload_uses_the_planning_description_as_a_banner_fallback(): void
-    {
-        Storage::fake('local');
-        $imagePath = "description-images/admins/{$this->admin->id}/123e4567-e89b-12d3-a456-426614174001.png";
-        $imageUrl = '/'.$imagePath;
-        Storage::disk('local')->put($imagePath, 'image-bytes');
-
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Rencana dengan Banner',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal_rencana' => now()->format('Y-m-d'),
-            'status' => 'disetujui',
-        ]);
-
-        DetailKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'deskripsi' => "<p>Materi rencana</p><p><img src=\"{$imageUrl}\" alt=\"Banner\"></p>",
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal' => now()->format('Y-m-d'),
-            'waktu_mulai' => '09:00',
-            'lokasi' => 'Aula BEI',
-        ]);
-
-        Kegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'nama_kegiatan' => 'Kegiatan dari Rencana',
-            'deskripsi' => 'Deskripsi lama tanpa banner',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal' => now()->format('Y-m-d'),
-            'waktu_mulai' => '09:00',
-            'lokasi' => 'Aula BEI',
-            'status' => 'dipublikasikan',
-        ]);
-
-        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kalender');
-
-        $response->assertInertia(fn (Assert $page) => $page
-            ->component('Admin/Kalender/Index')
-            ->where('eventsClient.0.description_banner', $imageUrl)
-        );
-    }
-
     public function test_calendar_event_payload_omits_a_description_image_missing_from_storage(): void
     {
         Storage::fake('local');
@@ -234,5 +193,111 @@ class AdminKalenderTest extends TestCase
             ->component('Admin/Kalender/Index')
             ->where('filters.view', 'list')
         );
+    }
+
+    public function test_guest_cannot_send_reminder_email(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Workshop Saham',
+            'deskripsi' => 'Deskripsi workshop',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->post("/admin/kalender/{$kegiatan->id}/kirim-pengingat", [
+            'custom_emails' => 'peserta@example.com',
+        ]);
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_admin_can_send_reminder_email_to_activity_proposer(): void
+    {
+        Mail::fake();
+
+        $userMitra = User::create([
+            'name' => 'Budi Santoso (Mitra UNIB)',
+            'email' => 'budi@kampus.ac.id',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $kegiatan = Kegiatan::create([
+            'user_id' => $userMitra->id,
+            'nama_kegiatan' => 'Sekolah Pasar Modal Level 1',
+            'deskripsi' => 'Edukasi SPM',
+            'jenis_kegiatan' => 'SPM',
+            'tanggal' => now()->addDays(2)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'waktu_selesai' => '12:00',
+            'lokasi' => 'GI BEI UNIB',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->post("/admin/kalender/{$kegiatan->id}/kirim-pengingat", [
+            'include_pengusul' => true,
+            'catatan' => 'Mohon koordinasikan kehadiran peserta 30 menit sebelum acara.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        Mail::assertSent(KegiatanReminderMail::class, 1);
+        Mail::assertSent(KegiatanReminderMail::class, fn ($mail) => $mail->hasTo('budi@kampus.ac.id') && $mail->customNote === 'Mohon koordinasikan kehadiran peserta 30 menit sebelum acara.');
+    }
+
+    public function test_admin_can_send_reminder_email_to_custom_emails(): void
+    {
+        Mail::fake();
+
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Seminar Pasar Modal Syariah',
+            'deskripsi' => 'Edukasi Syariah',
+            'jenis_kegiatan' => 'Seminar',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->post("/admin/kalender/{$kegiatan->id}/kirim-pengingat", [
+            'include_pengusul' => false,
+            'custom_emails' => 'mitra1@kampus.ac.id, mitra2@sekuritas.co.id',
+            'catatan' => 'Pengingat untuk tim panitia pelaksana.',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        Mail::assertSent(KegiatanReminderMail::class, 2);
+        Mail::assertSent(KegiatanReminderMail::class, fn ($mail) => $mail->hasTo('mitra1@kampus.ac.id'));
+        Mail::assertSent(KegiatanReminderMail::class, fn ($mail) => $mail->hasTo('mitra2@sekuritas.co.id'));
+    }
+
+    public function test_admin_cannot_send_reminder_email_without_valid_recipients(): void
+    {
+        Mail::fake();
+
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Kegiatan Tanpa Peserta',
+            'deskripsi' => 'Kosong',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->post("/admin/kalender/{$kegiatan->id}/kirim-pengingat", [
+            'include_pengusul' => true,
+            'custom_emails' => '',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+
+        Mail::assertNothingSent();
     }
 }

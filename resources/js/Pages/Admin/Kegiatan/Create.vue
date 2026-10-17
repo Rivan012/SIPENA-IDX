@@ -7,8 +7,6 @@ const RichTextEditor = defineAsyncComponent(() => import('@/Components/RichTextE
 
 const props = defineProps({
     kegiatan: Object,
-    rencanaKegiatan: Array,
-    pengajuanKegiatan: Array,
     kategori: Array,
     descriptionImageUploadUrl: String,
 });
@@ -24,8 +22,6 @@ const form = useForm({
     mitra: '',
     kuota_peserta: 100,
     status: 'menunggu_approval',
-    rencana_kegiatan_id: '',
-    pengajuan_kegiatan_id: '',
 });
 
 const submit = () => {

@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kegiatan;
-use App\Models\PengajuanKegiatan;
-use App\Models\RencanaKegiatan;
 use App\Support\ActivityDescriptionSanitizer;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -21,7 +21,6 @@ class KegiatanController extends Controller
     public function index(Request $request)
     {
         $query = $this->manageableActivitiesQuery()
-            ->with('rencanaKegiatan.detailKegiatan', 'rencanaKegiatan.admin')
             ->withCount('peserta')
             ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q
                 ->where('nama_kegiatan', 'like', "%{$s}%")
@@ -68,7 +67,7 @@ class KegiatanController extends Controller
 
     public function show(Kegiatan $kegiatan): Response
     {
-        $kegiatan->load('rencanaKegiatan.detailKegiatan', 'pengajuanKegiatan', 'agenda', 'peserta.user', 'laporanKegiatan');
+        $kegiatan->load('agenda', 'peserta.user', 'laporanKegiatan');
         $kegiatan->setAttribute('deskripsi_html', $this->descriptionSanitizer->sanitize($kegiatan->deskripsi));
 
         return Inertia::render('Admin/Kegiatan/Show', [
@@ -85,6 +84,22 @@ class KegiatanController extends Controller
             "proposal-{$kegiatan->id}.pdf",
             ['Content-Type' => 'application/pdf'],
         );
+    }
+
+    public function downloadAttendance(Request $request, Kegiatan $kegiatan): HttpResponse
+    {
+        abort_unless($kegiatan->status === 'dipublikasikan', 404);
+
+        $validated = $request->validate([
+            'orientation' => ['required', Rule::in(['portrait', 'landscape'])],
+        ]);
+
+        return Pdf::loadView('admin.kegiatan.presensi', [
+            'kegiatan' => $kegiatan,
+            'orientation' => $validated['orientation'],
+        ])
+            ->setPaper('a4', $validated['orientation'])
+            ->download("presensi-{$kegiatan->id}-{$validated['orientation']}.pdf");
     }
 
     public function edit(Kegiatan $kegiatan): Response
@@ -123,8 +138,6 @@ class KegiatanController extends Controller
             'mitra' => 'nullable|string|max:255',
             'kuota_peserta' => 'nullable|integer|min:1',
             'status' => ['required', Rule::in(array_keys(Kegiatan::STATUS))],
-            'rencana_kegiatan_id' => ['nullable', 'exists:rencana_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
-            'pengajuan_kegiatan_id' => ['nullable', 'exists:pengajuan_kegiatan,id', Rule::unique('kegiatan')->ignore($kegiatan)],
         ]);
 
         $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
@@ -149,8 +162,6 @@ class KegiatanController extends Controller
         return [
             'kegiatan' => $kegiatan,
             'descriptionImageUploadUrl' => route('admin.description-images.store'),
-            'rencanaKegiatan' => RencanaKegiatan::orderByDesc('tanggal_rencana')->get(['id', 'nama_kegiatan']),
-            'pengajuanKegiatan' => PengajuanKegiatan::with('rencanaKegiatan:id,nama_kegiatan')->where('status', 'disetujui')->get(),
             'kategori' => Kegiatan::distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),
         ];
     }

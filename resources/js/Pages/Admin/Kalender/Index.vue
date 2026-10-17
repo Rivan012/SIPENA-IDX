@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import {
     CalenderIcon,
@@ -8,7 +8,9 @@ import {
     ChevronRightIcon,
     GridIcon,
     ListIcon,
+    MailIcon,
 } from '@/Icons';
+import { showToast } from '@/Utils/sweetalert';
 
 const props = defineProps({
     year: Number,
@@ -193,6 +195,66 @@ const selectDate = (dateString, firstEvent = null) => {
 const selectEvent = (event) => {
     selectedEvent.value = event;
     selectedDate.value = event.tanggal;
+};
+
+// Reminder Email Modal State & Actions
+const showReminderModal = ref(false);
+const isSendingReminder = ref(false);
+const reminderTargetEvent = ref(null);
+const reminderForm = ref({
+    include_pengusul: true,
+    custom_emails: '',
+    catatan: '',
+});
+
+const openReminderModal = (event) => {
+    if (!event) return;
+    reminderTargetEvent.value = event;
+    reminderForm.value = {
+        include_pengusul: Boolean(event.pengusul_email),
+        custom_emails: '',
+        catatan: '',
+    };
+    showReminderModal.value = true;
+};
+
+const closeReminderModal = () => {
+    if (isSendingReminder.value) return;
+    showReminderModal.value = false;
+    reminderTargetEvent.value = null;
+};
+
+const sendReminder = () => {
+    if (!reminderTargetEvent.value) return;
+    const hasPengusul = reminderForm.value.include_pengusul && Boolean(reminderTargetEvent.value.pengusul_email);
+    if (!hasPengusul && !reminderForm.value.custom_emails.trim()) {
+        showToast('Pilih mitra pengusul atau isi email tujuan tambahan.', 'error');
+        return;
+    }
+
+    isSendingReminder.value = true;
+    router.post(
+        route('admin.kalender.send-reminder', reminderTargetEvent.value.id),
+        {
+            include_pengusul: reminderForm.value.include_pengusul,
+            custom_emails: reminderForm.value.custom_emails,
+            catatan: reminderForm.value.catatan,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                showReminderModal.value = false;
+                reminderTargetEvent.value = null;
+            },
+            onError: (errors) => {
+                const firstErr = Object.values(errors)[0];
+                if (firstErr) showToast(firstErr, 'error');
+            },
+            onFinish: () => {
+                isSendingReminder.value = false;
+            },
+        }
+    );
 };
 </script>
 
@@ -523,7 +585,6 @@ const selectEvent = (event) => {
                                         <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
                                             <span class="truncate max-w-[200px]">📍 {{ ev.lokasi }}</span>
                                             <span>👤 {{ ev.pic }}</span>
-                                            <span class="font-semibold text-emerald-700">{{ ev.anggaran }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -592,12 +653,8 @@ const selectEvent = (event) => {
                                     <span class="min-w-0 break-words text-slate-800">{{ selectedEvent.pic }}</span>
                                 </div>
                                 <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
-                                    <span class="font-bold text-slate-500">ANGGARAN:</span>
-                                    <span class="min-w-0 font-bold text-emerald-700">{{ selectedEvent.anggaran }}</span>
-                                </div>
-                                <div class="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-2">
                                     <span class="font-bold text-slate-500">KUOTA:</span>
-                                    <span class="min-w-0 text-slate-800">{{ selectedEvent.peserta_count }} / {{ selectedEvent.kuota_peserta }} Peserta</span>
+                                    <span class="min-w-0 text-slate-800">{{ selectedEvent.kuota_peserta }} Peserta</span>
                                 </div>
                             </div>
 
@@ -606,6 +663,15 @@ const selectEvent = (event) => {
                                 <span>Buka Rincian Kegiatan</span>
                                 <ChevronRightIcon class="h-4 w-4" />
                             </Link>
+
+                            <button
+                                type="button"
+                                @click="openReminderModal(selectedEvent)"
+                                class="mt-2 min-h-11 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9F0E0F] shadow-xs"
+                            >
+                                <MailIcon class="h-4 w-4 text-[#9F0E0F]" />
+                                <span>Kirim Pengingat Email</span>
+                            </button>
                         </div>
 
                         <!-- State Jika Tidak Ada Event di Tanggal Terpilih -->
@@ -616,6 +682,138 @@ const selectEvent = (event) => {
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Modal Kirim Pengingat Email -->
+        <div
+            v-if="showReminderModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-xl border border-slate-100">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-[#9F0E0F]">
+                            <MailIcon class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900">Kirim Pengingat Email</h3>
+                            <p class="text-[11px] text-slate-500">Notifikasi jadwal via SMTP Google</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        @click="closeReminderModal"
+                        :disabled="isSendingReminder"
+                        class="text-slate-400 hover:text-slate-600 disabled:opacity-50 text-xl font-bold leading-none cursor-pointer"
+                    >
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Info Ringkas Kegiatan -->
+                <div v-if="reminderTargetEvent" class="rounded-xl border border-slate-100 bg-slate-50/75 p-3.5 text-xs space-y-1.5">
+                    <div class="font-bold text-slate-900 text-sm leading-snug">
+                        {{ reminderTargetEvent.nama_kegiatan }}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-slate-600 text-[11px] pt-1">
+                        <div>
+                            <span class="font-semibold text-slate-500">Tanggal:</span> {{ reminderTargetEvent.tanggal_formatted }}
+                        </div>
+                        <div>
+                            <span class="font-semibold text-slate-500">Waktu:</span> {{ reminderTargetEvent.waktu_mulai }} - {{ reminderTargetEvent.waktu_selesai }} WIB
+                        </div>
+                        <div class="col-span-2">
+                            <span class="font-semibold text-slate-500">Lokasi:</span> {{ reminderTargetEvent.lokasi }}
+                        </div>
+                    </div>
+                </div>
+
+                <form @submit.prevent="sendReminder" class="space-y-4 text-xs">
+                    <!-- Opsi Pengusul / Mitra Kegiatan -->
+                    <div v-if="reminderTargetEvent?.pengusul_email" class="rounded-xl border border-slate-200 p-3 hover:border-slate-300 transition">
+                        <label class="flex items-start gap-2.5 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                v-model="reminderForm.include_pengusul"
+                                class="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#9F0E0F] focus:ring-[#9F0E0F]"
+                            />
+                            <div>
+                                <span class="font-bold text-slate-800">Kirim ke Mitra Pengusul Kegiatan</span>
+                                <div class="text-[11px] text-slate-600 mt-0.5">
+                                    <span class="font-semibold text-slate-800">{{ reminderTargetEvent.pengusul_nama }}</span>
+                                    <span class="text-slate-400"> &bull; </span>
+                                    <span class="text-[#9F0E0F] font-medium">{{ reminderTargetEvent.pengusul_email }}</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                    Pengingat dikirim ke akun mitra yang mengusulkan kegiatan ini.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div v-else class="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-amber-800 text-[11px] leading-relaxed">
+                        <div class="font-bold flex items-center gap-1.5 text-amber-900 mb-0.5">
+                            <span class="inline-block h-2 w-2 rounded-full bg-amber-500"></span>
+                            Kegiatan dibuat internal admin
+                        </div>
+                        Kegiatan ini tidak terhubung dengan akun mitra pengusul. Silakan masukkan alamat email tujuan pada kolom di bawah.
+                    </div>
+
+                    <!-- Input Email Tambahan -->
+                    <div class="space-y-1.5">
+                        <label class="block font-bold text-slate-700">
+                            Email Tambahan / Alternatif (Opsional)
+                        </label>
+                        <input
+                            type="text"
+                            v-model="reminderForm.custom_emails"
+                            placeholder="contoh: mitra@kampus.ac.id, panitia@bei.co.id"
+                            class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:border-[#9F0E0F] focus:outline-none focus:ring-1 focus:ring-[#9F0E0F]"
+                        />
+                        <p class="text-[10px] text-slate-400">Pisahkan beberapa email dengan tanda koma.</p>
+                    </div>
+
+                    <!-- Input Catatan Tambahan -->
+                    <div class="space-y-1.5">
+                        <label class="block font-bold text-slate-700">
+                            Catatan Tambahan untuk Mitra (Opsional)
+                        </label>
+                        <textarea
+                            v-model="reminderForm.catatan"
+                            rows="2"
+                            maxlength="500"
+                            placeholder="Contoh: Mohon koordinasikan kehadiran peserta 30 menit sebelum acara."
+                            class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-[#9F0E0F] focus:outline-none focus:ring-1 focus:ring-[#9F0E0F]"
+                        ></textarea>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center justify-end gap-2.5 border-t border-slate-100 pt-3">
+                        <button
+                            type="button"
+                            @click="closeReminderModal"
+                            :disabled="isSendingReminder"
+                            class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-200 disabled:opacity-50 cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            :disabled="isSendingReminder"
+                            class="inline-flex items-center gap-1.5 rounded-xl bg-[#9F0E0F] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#850C0D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9F0E0F] disabled:opacity-50 disabled:cursor-not-allowed shadow-xs cursor-pointer"
+                        >
+                            <svg v-if="isSendingReminder" class="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <MailIcon v-else class="h-4 w-4" />
+                            <span>{{ isSendingReminder ? 'Mengirim...' : 'Kirim Sekarang' }}</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </AdminLayout>

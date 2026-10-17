@@ -188,7 +188,7 @@ const confirmDelete = async (k) => {
                                 <th class="py-3 px-4">KATEGORI</th>
                                 <th class="py-3 px-4">JADWAL</th>
                                 <th class="py-3 px-4">LOKASI</th>
-                                <th class="py-3 px-4 text-center">PESERTA</th>
+                                <th class="py-3 px-4 text-center">KUOTA</th>
                                 <th class="py-3 px-4 text-center">MITRA</th>
                                 <th class="py-3 px-4 text-center">STATUS</th>
                                 <th class="py-3 px-4 text-right">AKSI</th>
@@ -197,7 +197,6 @@ const confirmDelete = async (k) => {
                         <tbody class="divide-y divide-slate-100">
                             <tr v-for="k in kegiatan.data" :key="k.id" class="hover:bg-slate-50/60 transition">
                                 <td class="py-3.5 px-4 max-w-xs">
-                                    <span class="font-mono text-[10px] font-bold text-slate-400 block">{{ k.kode }}</span>
                                     <Link :href="route('admin.kegiatan.show', k.id)" class="font-bold text-slate-900 hover:text-[#85131B] leading-snug">
                                         {{ k.nama_kegiatan }}
                                     </Link>
@@ -214,9 +213,8 @@ const confirmDelete = async (k) => {
                                 <td class="py-3.5 px-4 text-slate-600 max-w-[200px] truncate" :title="k.lokasi">
                                     {{ k.lokasi }}
                                 </td>
-                                <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                    <span class="font-bold text-slate-800">{{ k.peserta_count || 0 }}</span>
-                                    <span class="text-slate-400 text-[10px]"> / {{ k.kuota_peserta || '-' }}</span>
+                                <td class="py-3.5 px-4 text-center whitespace-nowrap font-semibold text-slate-800">
+                                    {{ k.kuota_peserta || '-' }}
                                 </td>
                                 <td class="py-3.5 px-4 text-slate-600 max-w-[200px] truncate" :title="k.mitra || '-'">
                                     {{ k.mitra || '-' }}

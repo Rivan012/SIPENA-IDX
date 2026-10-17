@@ -1,16 +1,30 @@
 <script setup>
+import { ref } from 'vue';
 import { useForm, Link, Head } from '@inertiajs/vue3';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import { RefreshIcon } from '@/Icons';
+
+const showPassword = ref(false);
+const captchaUrl = ref(route('captcha', { action: 'login', t: Date.now() }));
+
+const refreshCaptcha = () => {
+    form.captcha = '';
+    captchaUrl.value = route('captcha', { action: 'login', t: Date.now() });
+};
 
 const form = useForm({
     email: '',
     password: '',
+    captcha: '',
     remember: false,
 });
 
 const submit = () => {
     form.post(route('login'), {
-        onFinish: () => form.reset('password'),
+        onFinish: () => {
+            form.reset('password');
+            refreshCaptcha();
+        },
     });
 };
 </script>
@@ -61,16 +75,64 @@ const submit = () => {
                                 Lupa kata sandi?
                             </Link>
                         </div>
-                        <input
-                            id="password"
-                            v-model="form.password"
-                            type="password"
-                            required
-                            placeholder="Masukkan kata sandi akun Anda"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#85131B] focus:border-[#85131B]"
-                        />
+                        <div class="relative">
+                            <input
+                                id="password"
+                                v-model="form.password"
+                                :type="showPassword ? 'text' : 'password'"
+                                required
+                                placeholder="Masukkan kata sandi akun Anda"
+                                class="w-full px-3.5 py-2.5 pr-10 text-xs rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#85131B] focus:border-[#85131B]"
+                            />
+                            <button
+                                type="button"
+                                @click="showPassword = !showPassword"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer focus:outline-none"
+                                :title="showPassword ? 'Sembunyikan password' : 'Lihat password'"
+                            >
+                                <svg v-if="showPassword" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                </svg>
+                            </button>
+                        </div>
                         <div v-if="form.errors.password" class="mt-1 text-xs text-red-600">
                             {{ form.errors.password }}
+                        </div>
+                    </div>
+
+                    <!-- CAPTCHA Field -->
+                    <div>
+                        <label for="captcha" class="block text-xs font-bold text-slate-900 mb-1">
+                            Kode Keamanan (CAPTCHA)
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <div class="shrink-0 overflow-hidden rounded-lg border border-slate-300 bg-slate-50">
+                                <img :src="captchaUrl" alt="CAPTCHA" class="h-10 w-[140px] block" />
+                            </div>
+                            <button
+                                type="button"
+                                @click="refreshCaptcha"
+                                title="Muat ulang kode CAPTCHA"
+                                class="p-2.5 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-600 transition cursor-pointer"
+                            >
+                                <RefreshIcon class="h-4 w-4" />
+                            </button>
+                            <input
+                                id="captcha"
+                                v-model="form.captcha"
+                                type="text"
+                                required
+                                maxlength="6"
+                                placeholder="Ketik kode"
+                                class="w-full px-3 py-2.5 text-xs font-mono font-bold uppercase rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#85131B] focus:border-[#85131B]"
+                            />
+                        </div>
+                        <div v-if="form.errors.captcha" class="mt-1 text-xs text-red-600">
+                            {{ form.errors.captcha }}
                         </div>
                     </div>
 

@@ -35,6 +35,7 @@ class AdminPenggunaTest extends TestCase
             'email' => 'peserta@example.com',
             'password' => Hash::make('password123'),
             'no_telepon' => '081234567890',
+            'email_verified_at' => now(),
         ]);
     }
 

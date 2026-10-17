@@ -3,13 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Admin;
-use App\Models\DetailKegiatan;
 use App\Models\Kegiatan;
-use App\Models\PengajuanKegiatan;
-use App\Models\RencanaKegiatan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -32,41 +30,28 @@ class AdminApprovalTest extends TestCase
 
     public function test_guest_cannot_access_approval_page(): void
     {
-        $response = $this->get('/admin/pengajuan');
-        $response->assertRedirect('/login');
-
         $response = $this->get('/admin/approval');
         $response->assertRedirect('/login');
     }
 
+    public function test_budget_tables_and_activity_foreign_keys_are_removed(): void
+    {
+        $this->assertFalse(Schema::hasTable('rencana_kegiatan'));
+        $this->assertFalse(Schema::hasTable('detail_kegiatan'));
+        $this->assertFalse(Schema::hasTable('pengajuan_kegiatan'));
+        $this->assertFalse(Schema::hasColumn('kegiatan', 'rencana_kegiatan_id'));
+        $this->assertFalse(Schema::hasColumn('kegiatan', 'pengajuan_kegiatan_id'));
+    }
+
+    public function test_budget_routes_are_removed(): void
+    {
+        $this->get('/admin/anggaran')->assertNotFound();
+        $this->get('/admin/rencana-kegiatan')->assertNotFound();
+        $this->get('/admin/pengajuan')->assertNotFound();
+    }
+
     public function test_admin_can_view_approval_index(): void
     {
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Edukasi Saham Pemula',
-            'jenis_kegiatan' => 'SPM',
-            'tanggal_rencana' => '2025-05-15',
-            'status' => 'diajukan',
-        ]);
-
-        DetailKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'deskripsi' => 'Pengenalan pasar modal',
-            'tanggal' => '2025-05-15',
-            'waktu_mulai' => '09:00',
-            'lokasi' => 'Aula UNIB',
-            'anggaran' => 15000000,
-        ]);
-
-        $pengajuan = PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'PROP-20250515-001',
-            'tanggal_pengajuan' => '2025-05-01',
-            'status' => 'diajukan',
-            'catatan' => 'Mohon persetujuan anggaran',
-        ]);
-
         $maker = User::factory()->create();
         Kegiatan::create([
             'user_id' => $maker->id,
@@ -79,18 +64,14 @@ class AdminApprovalTest extends TestCase
             'status' => 'menunggu_approval',
         ]);
 
-        $response = $this->actingAs($this->admin, 'admin')->get('/admin/pengajuan');
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/approval');
         $response->assertStatus(200);
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Admin/Pengajuan/Index')
-            ->has('approvalItems.data', 2)
-            ->where('approvalItems.total', 2)
-            ->where('approvalItems.data.0.source', 'maker')
+            ->has('approvalItems.data', 1)
+            ->where('approvalItems.total', 1)
             ->where('approvalItems.data.0.nama_kegiatan', 'Proposal Maker Workshop')
-            ->where('approvalItems.data.0.id', 'maker:1')
-            ->where('approvalItems.data.1.source', 'anggaran')
-            ->where('approvalItems.data.1.identifier', 'PROP-20250515-001')
-            ->where('approvalItems.data.1.id', 'anggaran:1')
+            ->where('approvalItems.data.0.id', 1)
         );
     }
 
@@ -114,13 +95,12 @@ class AdminApprovalTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Admin/Pengajuan/Index')
             ->has('approvalItems.data', 1)
-            ->where('approvalItems.data.0.source', 'maker')
             ->where('approvalItems.data.0.nama_kegiatan', 'Proposal Maker untuk Review')
             ->where('approvalItems.data.0.submitter', $maker->name)
         );
     }
 
-    public function test_approval_search_and_status_filter_apply_to_both_sources(): void
+    public function test_approval_search_and_status_filter_apply_to_maker_proposals(): void
     {
         $maker = User::factory()->create();
         Kegiatan::create([
@@ -134,39 +114,22 @@ class AdminApprovalTest extends TestCase
             'status' => 'menunggu_approval',
         ]);
 
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Workshop Anggaran Dicari',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal_rencana' => now()->addDays(11)->format('Y-m-d'),
-            'status' => 'diajukan',
-        ]);
-        PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'ANG-SEARCH-001',
-            'tanggal_pengajuan' => now()->toDateString(),
-            'status' => 'diajukan',
-        ]);
-
         $makerResponse = $this->actingAs($this->admin, 'admin')->get('/admin/approval?search=Maker&status=menunggu');
         $makerResponse->assertInertia(fn (AssertableInertia $page) => $page
             ->has('approvalItems.data', 1)
-            ->where('approvalItems.data.0.source', 'maker')
         );
 
-        $budgetResponse = $this->actingAs($this->admin, 'admin')->get('/admin/approval?search=Anggaran&status=menunggu');
-        $budgetResponse->assertInertia(fn (AssertableInertia $page) => $page
-            ->has('approvalItems.data', 1)
-            ->where('approvalItems.data.0.source', 'anggaran')
+        $noMatchResponse = $this->actingAs($this->admin, 'admin')->get('/admin/approval?search=Missing&status=menunggu');
+        $noMatchResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('approvalItems.data', 0)
         );
     }
 
-    public function test_approval_pagination_spans_both_sources(): void
+    public function test_approval_pagination_lists_maker_proposals(): void
     {
         $maker = User::factory()->create();
 
-        foreach (range(1, 6) as $index) {
+        foreach (range(1, 12) as $index) {
             Kegiatan::create([
                 'user_id' => $maker->id,
                 'nama_kegiatan' => "Maker Activity {$index}",
@@ -176,21 +139,6 @@ class AdminApprovalTest extends TestCase
                 'waktu_mulai' => '09:00',
                 'lokasi' => 'Aula BEI Bengkulu',
                 'status' => 'menunggu_approval',
-            ]);
-
-            $rencana = RencanaKegiatan::create([
-                'admin_id' => $this->admin->id,
-                'nama_kegiatan' => "Budget Activity {$index}",
-                'jenis_kegiatan' => 'SPM',
-                'tanggal_rencana' => now()->addDays(11)->format('Y-m-d'),
-                'status' => 'diajukan',
-            ]);
-            PengajuanKegiatan::create([
-                'rencana_kegiatan_id' => $rencana->id,
-                'admin_id' => $this->admin->id,
-                'nomor_pengajuan' => sprintf('PAG-%03d', $index),
-                'tanggal_pengajuan' => now()->toDateString(),
-                'status' => 'diajukan',
             ]);
         }
 
@@ -277,108 +225,6 @@ class AdminApprovalTest extends TestCase
         $this->assertSame('menunggu_approval', $proposal->fresh()->status);
     }
 
-    public function test_admin_can_view_approval_detail(): void
-    {
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Workshop Investasi Syariah',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal_rencana' => '2025-06-10',
-            'status' => 'diajukan',
-        ]);
-
-        $pengajuan = PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'PROP-20250610-002',
-            'tanggal_pengajuan' => '2025-05-20',
-            'status' => 'diajukan',
-        ]);
-
-        $response = $this->actingAs($this->admin, 'admin')->get("/admin/pengajuan/{$pengajuan->id}");
-        $response->assertStatus(200);
-        $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Admin/Pengajuan/Show')
-            ->where('pengajuan.nomor_pengajuan', 'PROP-20250610-002')
-        );
-    }
-
-    public function test_admin_can_approve_proposal_and_auto_create_kegiatan(): void
-    {
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Seminar Pasar Modal Nasional',
-            'jenis_kegiatan' => 'Sosialisasi',
-            'tanggal_rencana' => '2025-07-20',
-            'status' => 'diajukan',
-        ]);
-
-        DetailKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'deskripsi' => 'Seminar akbar',
-            'tanggal' => '2025-07-20',
-            'waktu_mulai' => '09:00',
-            'waktu_selesai' => '13:00',
-            'lokasi' => 'Gedung Serba Guna',
-            'target_peserta' => 200,
-            'anggaran' => 20000000,
-        ]);
-
-        $pengajuan = PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'PROP-20250720-003',
-            'tanggal_pengajuan' => '2025-06-01',
-            'status' => 'diajukan',
-        ]);
-
-        $response = $this->actingAs($this->admin, 'admin')
-            ->patch("/admin/pengajuan/{$pengajuan->id}/status", [
-                'status' => 'disetujui',
-                'catatan' => 'Disetujui sesuai pagu RKAP.',
-                'terbitkan_kegiatan' => 1,
-            ]);
-
-        $response->assertSessionHas('success');
-        $this->assertEquals('disetujui', $pengajuan->fresh()->status);
-        $this->assertEquals('disetujui', $rencana->fresh()->status);
-
-        $this->assertDatabaseHas('kegiatan', [
-            'pengajuan_kegiatan_id' => $pengajuan->id,
-            'nama_kegiatan' => 'Seminar Pasar Modal Nasional',
-            'status' => 'dipublikasikan',
-        ]);
-    }
-
-    public function test_admin_can_request_revision(): void
-    {
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Webinar Perlu Revisi',
-            'jenis_kegiatan' => 'Webinar',
-            'tanggal_rencana' => '2025-08-10',
-            'status' => 'diajukan',
-        ]);
-
-        $pengajuan = PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'PROP-20250810-004',
-            'tanggal_pengajuan' => '2025-07-01',
-            'status' => 'diajukan',
-        ]);
-
-        $response = $this->actingAs($this->admin, 'admin')
-            ->patch("/admin/pengajuan/{$pengajuan->id}/status", [
-                'status' => 'revisi',
-                'catatan' => 'Kurangi anggaran konsumsi.',
-            ]);
-
-        $response->assertSessionHas('success');
-        $this->assertEquals('revisi', $pengajuan->fresh()->status);
-        $this->assertEquals('Kurangi anggaran konsumsi.', $pengajuan->fresh()->catatan);
-    }
-
     public function test_admin_can_export_approval_csv(): void
     {
         $maker = User::factory()->create();
@@ -393,33 +239,41 @@ class AdminApprovalTest extends TestCase
             'status' => 'menunggu_approval',
         ]);
 
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'CSV Budget Proposal',
-            'jenis_kegiatan' => 'SPM',
-            'tanggal_rencana' => now()->addDays(10)->format('Y-m-d'),
-            'status' => 'diajukan',
-        ]);
-        PengajuanKegiatan::create([
-            'rencana_kegiatan_id' => $rencana->id,
-            'admin_id' => $this->admin->id,
-            'nomor_pengajuan' => 'CSV-001',
-            'tanggal_pengajuan' => now()->toDateString(),
-            'status' => 'diajukan',
-        ]);
-
         $response = $this->actingAs($this->admin, 'admin')
-            ->get('/admin/pengajuan/export');
+            ->get(route('admin.approval.export'));
 
         $response->assertStatus(200);
         $this->assertTrue(str_contains($response->headers->get('content-type'), 'text/csv'));
         $this->assertStringContainsString('CSV Maker Proposal', $response->streamedContent());
-        $this->assertStringContainsString('CSV Budget Proposal', $response->streamedContent());
+        $this->assertStringNotContainsString('Alokasi Anggaran', $response->streamedContent());
 
         $filteredResponse = $this->actingAs($this->admin, 'admin')
-            ->get('/admin/pengajuan/export?search=CSV Maker');
+            ->get(route('admin.approval.export', ['search' => 'CSV Maker']));
         $filteredCsv = $filteredResponse->streamedContent();
         $this->assertStringContainsString('CSV Maker Proposal', $filteredCsv);
-        $this->assertStringNotContainsString('CSV Budget Proposal', $filteredCsv);
+    }
+
+    public function test_dashboard_keeps_maker_proposals_after_budget_removal(): void
+    {
+        $maker = User::factory()->create();
+        $proposal = Kegiatan::create([
+            'user_id' => $maker->id,
+            'nama_kegiatan' => 'Proposal Mitra di Dashboard',
+            'deskripsi' => 'Proposal edukasi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(10)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/dashboard');
+
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Admin/Dashboard')
+            ->where('proposalMenungguReview.0.id', $proposal->id)
+            ->where('proposalMenungguReview.0.pengusul', $maker->name)
+            ->where('metrics.total_peserta', 0)
+        );
     }
 }

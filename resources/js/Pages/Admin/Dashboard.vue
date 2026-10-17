@@ -5,16 +5,13 @@ import {
     BoxIcon,
     CheckIcon,
     UserGroupIcon,
-    DocsIcon,
-    BarChartIcon,
-    PieChartIcon,
     ChevronRightIcon
 } from '@/Icons';
 
 defineProps({
     metrics: Object,
     kegiatanTerbaru: Array,
-    pengajuanTerbaru: Array,
+    proposalMenungguReview: Array,
 });
 </script>
 
@@ -28,7 +25,7 @@ defineProps({
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
                     <div class="max-w-2xl space-y-2">
                         <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/20 text-white text-xs font-bold tracking-wider uppercase border border-white/10">
-                            <span>Tahun Anggaran 2026</span>
+                            <span>Agenda Edukasi</span>
                             <span class="text-white/40">|</span>
                             <span class="text-rose-100 font-medium">KP BEI Bengkulu</span>
                         </div>
@@ -36,7 +33,7 @@ defineProps({
                             Portal Pengelolaan SIPENA IDX
                         </h1>
                         <p class="text-xs sm:text-sm text-rose-100/90 leading-relaxed">
-                            Pusat kendali perencanaan kegiatan edukasi pasar modal, pemantauan partisipasi masyarakat, dan realisasi alokasi belanja RKAP.
+                            Pusat kendali jadwal kegiatan edukasi pasar modal dan partisipasi masyarakat.
                         </p>
                     </div>
 
@@ -51,14 +48,14 @@ defineProps({
                             :href="route('admin.approval.index')"
                             class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/20 transition-colors"
                         >
-                            <span>Tinjau Usulan Anggaran</span>
+                            <span>Tinjau Proposal Mitra</span>
                         </Link>
                     </div>
                 </div>
             </div>
 
             <!-- METRIC CARDS (TailAdmin EcommerceMetrics Structure) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Card 1: Total Kegiatan -->
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                     <div class="flex items-center justify-between">
@@ -98,21 +95,6 @@ defineProps({
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-blue-600 leading-none">{{ metrics.total_peserta }}</h3>
                         <p class="text-[11px] text-slate-500 mt-1">Peserta terdaftar</p>
-                    </div>
-                </div>
-                <!-- Card 5: Realisasi Biaya -->
-                <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Realisasi</span>
-                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-100">
-                            <BarChartIcon class="w-5 h-5" />
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="text-base font-bold text-emerald-700 leading-none truncate" :title="metrics.realisasi_anggaran">
-                            {{ metrics.realisasi_anggaran }}
-                        </h3>
-                        <p class="text-[11px] text-slate-500 mt-1">Anggaran terserap</p>
                     </div>
                 </div>
             </div>
@@ -159,7 +141,7 @@ defineProps({
                 <div class="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                         <div>
-                            <h2 class="text-sm font-bold text-slate-900">Usulan Anggaran Menunggu Review</h2>
+                            <h2 class="text-sm font-bold text-slate-900">Proposal Mitra Menunggu Review</h2>
                             <p class="text-[11px] text-slate-500 mt-0.5">Pengajuan proposal kegiatan yang membutuhkan persetujuan</p>
                         </div>
                         <Link :href="route('admin.approval.index')" class="text-xs font-bold text-[#85131B] hover:text-[#680A10] hover:underline flex items-center gap-1">
@@ -169,22 +151,22 @@ defineProps({
                     </div>
 
                     <div class="p-6 divide-y divide-slate-100">
-                        <div v-for="p in pengajuanTerbaru" :key="p.id" class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4 text-xs">
+                        <div v-for="proposal in proposalMenungguReview" :key="proposal.id" class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4 text-xs">
                             <div class="min-w-0 space-y-1">
-                                <Link :href="route('admin.pengajuan.show', p.id)" class="font-bold text-slate-900 hover:text-[#85131B] truncate block">
-                                    {{ p.nomor_pengajuan }}: {{ p.nama_kegiatan }}
+                                <Link :href="route('admin.kegiatan.show', proposal.id)" class="font-bold text-slate-900 hover:text-[#85131B] truncate block">
+                                    {{ proposal.nama_kegiatan }}
                                 </Link>
                                 <div class="text-[11px] text-slate-500">
-                                    Estimasi Anggaran: <strong class="text-slate-800">{{ p.formatted_anggaran }}</strong>
+                                    Pengusul: <strong class="text-slate-800">{{ proposal.pengusul || 'Mitra' }}</strong>
                                 </div>
                             </div>
-                            <span :class="['px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap shrink-0 border', p.status_class]">
-                                {{ p.status_label }}
+                            <span :class="['px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap shrink-0 border', proposal.status_class]">
+                                {{ proposal.status_label }}
                             </span>
                         </div>
 
-                        <div v-if="!pengajuanTerbaru.length" class="py-8 text-center text-xs text-slate-400">
-                            Tidak ada pengajuan yang membutuhkan verifikasi saat ini.
+                        <div v-if="!proposalMenungguReview.length" class="py-8 text-center text-xs text-slate-400">
+                            Tidak ada proposal mitra yang membutuhkan verifikasi saat ini.
                         </div>
                     </div>
                 </div>

@@ -3,10 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Admin;
-use App\Models\DetailKegiatan;
 use App\Models\Kegiatan;
-use App\Models\PengajuanKegiatan;
-use App\Models\RencanaKegiatan;
 use App\Models\User;
 use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,6 +36,7 @@ class ActivityDescriptionTest extends TestCase
             'name' => 'Maker Editor',
             'email' => 'maker-editor@example.com',
             'password' => Hash::make('password123'),
+            'email_verified_at' => now(),
         ]);
     }
 
@@ -113,76 +111,6 @@ class ActivityDescriptionTest extends TestCase
 
         $this->assertStringContainsString('<em>edukasi</em>', $description);
         $this->assertStringNotContainsString('<script', $description);
-    }
-
-    public function test_planning_description_is_sanitized_and_remains_safe_when_approved(): void
-    {
-        $rawDescription = '<p>Rencana <strong>edukasi</strong></p><script>alert(1)</script>';
-
-        $this->actingAs($this->admin, 'admin')->post('/admin/rencana-kegiatan', [
-            'nama_kegiatan' => 'Rencana Rich Text',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal_rencana' => now()->addDays(10)->format('Y-m-d'),
-            'lokasi' => 'Aula BEI',
-            'waktu_mulai' => '09:00',
-            'target_peserta' => 50,
-            'anggaran' => 10000000,
-            'deskripsi' => $rawDescription,
-            'status' => 'diajukan',
-        ])->assertRedirect('/admin/rencana-kegiatan');
-
-        $rencana = RencanaKegiatan::where('nama_kegiatan', 'Rencana Rich Text')->firstOrFail();
-        $detail = DetailKegiatan::where('rencana_kegiatan_id', $rencana->id)->firstOrFail();
-        $this->assertStringContainsString('<strong>edukasi</strong>', $detail->deskripsi);
-        $this->assertStringNotContainsString('<script', $detail->deskripsi);
-
-        $planDetail = $this->actingAs($this->admin, 'admin')->get("/admin/rencana-kegiatan/{$rencana->id}");
-        $planDetail->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('detail.deskripsi_html', app(ActivityDescriptionSanitizer::class)->sanitize($detail->deskripsi))
-        );
-
-        $pengajuan = PengajuanKegiatan::where('rencana_kegiatan_id', $rencana->id)->firstOrFail();
-        $approvalDetail = $this->actingAs($this->admin, 'admin')->get("/admin/pengajuan/{$pengajuan->id}");
-        $approvalDetail->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('detail.deskripsi_html', app(ActivityDescriptionSanitizer::class)->sanitize($rawDescription))
-        );
-
-        $this->actingAs($this->admin, 'admin')
-            ->patch("/admin/pengajuan/{$pengajuan->id}/status", [
-                'status' => 'disetujui',
-                'catatan' => 'Disetujui',
-                'terbitkan_kegiatan' => true,
-            ])
-            ->assertSessionHas('success');
-
-        $publishedActivity = Kegiatan::where('pengajuan_kegiatan_id', $pengajuan->id)->firstOrFail();
-        $this->assertStringContainsString('<strong>edukasi</strong>', $publishedActivity->deskripsi);
-        $this->assertStringNotContainsString('<script', $publishedActivity->deskripsi);
-    }
-
-    public function test_detail_kegiatan_endpoint_sanitizes_description(): void
-    {
-        $rencana = RencanaKegiatan::create([
-            'admin_id' => $this->admin->id,
-            'nama_kegiatan' => 'Rencana Detail Sanitasi',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal_rencana' => now()->addDays(10)->format('Y-m-d'),
-            'status' => 'draft',
-        ]);
-
-        $this->actingAs($this->admin, 'admin')->post("/admin/rencana-kegiatan/{$rencana->id}/detail", [
-            'deskripsi' => '<p>Detail <em>format</em></p><script>alert(1)</script>',
-            'jenis_kegiatan' => 'Workshop',
-            'tanggal' => now()->addDays(10)->format('Y-m-d'),
-            'waktu_mulai' => '09:00',
-            'lokasi' => 'Aula BEI',
-            'target_peserta' => 20,
-            'anggaran' => 1000000,
-        ])->assertSessionHas('success');
-
-        $detail = DetailKegiatan::where('rencana_kegiatan_id', $rencana->id)->firstOrFail();
-        $this->assertStringContainsString('<em>format</em>', $detail->deskripsi);
-        $this->assertStringNotContainsString('<script', $detail->deskripsi);
     }
 
     public function test_uploaded_description_image_is_private_until_used_by_a_public_activity(): void

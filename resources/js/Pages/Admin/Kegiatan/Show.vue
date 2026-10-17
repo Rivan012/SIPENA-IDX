@@ -35,7 +35,24 @@ defineProps({
                         </span>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <form v-if="kegiatan.status === 'dipublikasikan'"
+                              method="get"
+                              :action="route('admin.kegiatan.presensi.download', kegiatan.id)"
+                              target="_blank"
+                              class="flex flex-wrap items-center gap-2">
+                            <label for="presensi-orientation" class="sr-only">Orientasi PDF presensi</label>
+                            <select id="presensi-orientation"
+                                    name="orientation"
+                                    class="min-h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#680A10]">
+                                <option value="portrait">Portrait</option>
+                                <option value="landscape">Landscape</option>
+                            </select>
+                            <button type="submit"
+                                    class="min-h-9 rounded-lg bg-[#680A10] px-3.5 text-xs font-semibold text-white transition hover:bg-[#54080D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#680A10]">
+                                Cetak Presensi
+                            </button>
+                        </form>
                         <Link :href="route('admin.kegiatan.edit', kegiatan.id)"
                               class="px-3.5 py-2 rounded-xl bg-[#680A10] hover:bg-[#54080D] text-white text-xs font-semibold transition shadow-xs">
                             Edit Kegiatan
@@ -77,9 +94,9 @@ defineProps({
                         <span class="font-bold text-slate-800 mt-1 block truncate" :title="kegiatan.mitra || '-'">{{ kegiatan.mitra || '-' }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 rounded-xl">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">PESERTA</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">KUOTA PESERTA</span>
                         <span class="font-bold text-slate-800 mt-1 block">
-                            {{ kegiatan.peserta?.length || 0 }} / {{ kegiatan.kuota_peserta || 100 }} Orang
+                            {{ kegiatan.kuota_peserta || 100 }} Orang
                         </span>
                     </div>
                 </div>

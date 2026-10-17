@@ -137,13 +137,8 @@ const batal = async (keg) => {
                         </div>
 
                         <div class="pt-2">
-                            <div class="flex justify-between text-[11px] text-slate-500 mb-1">
-                                <span>Kuota Terisi: <strong>{{ keg.peserta?.length || 0 }}/{{ keg.kuota_peserta || 100 }}</strong></span>
-                                <span>{{ Math.min(100, Math.round(((keg.peserta?.length || 0) / (keg.kuota_peserta || 100)) * 100)) }}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-[#680A10] h-1.5 rounded-full"
-                                     :style="{ width: `${Math.min(100, Math.round(((keg.peserta?.length || 0) / (keg.kuota_peserta || 100)) * 100))}%` }"></div>
+                            <div class="text-[11px] text-slate-500">
+                                Kuota: <strong class="text-slate-800">{{ keg.kuota_peserta || 100 }} Peserta</strong>
                             </div>
                         </div>
                     </div>

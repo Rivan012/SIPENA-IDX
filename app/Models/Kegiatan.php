@@ -49,8 +49,6 @@ class Kegiatan extends Model
         'reviewed_by_admin_id',
         'approval_note',
         'approval_processed_at',
-        'pengajuan_kegiatan_id',
-        'rencana_kegiatan_id',
         'nama_kegiatan',
         'deskripsi',
         'jenis_kegiatan',
@@ -80,16 +78,6 @@ class Kegiatan extends Model
     public function reviewedByAdmin()
     {
         return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
-    }
-
-    public function pengajuanKegiatan()
-    {
-        return $this->belongsTo(PengajuanKegiatan::class, 'pengajuan_kegiatan_id');
-    }
-
-    public function rencanaKegiatan()
-    {
-        return $this->belongsTo(RencanaKegiatan::class, 'rencana_kegiatan_id');
     }
 
     public function agenda()

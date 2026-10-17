@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\KegiatanReminderMail;
 use App\Models\Kegiatan;
 use App\Support\ActivityDescriptionSanitizer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,7 +58,7 @@ class KalenderController extends Controller
 
         $statusFilter = $request->get('status');
         $eventsQuery = Kegiatan::query()
-            ->with(['rencanaKegiatan.detailKegiatan', 'rencanaKegiatan.admin', 'peserta', 'agenda'])
+            ->with(['peserta', 'agenda', 'user'])
             ->when($statusFilter, function ($q, $st) {
                 if ($st === 'approval') {
                     $q->where('status', 'menunggu_approval');
@@ -76,17 +79,10 @@ class KalenderController extends Controller
             $blnFull = self::BULAN_ID[$t->month] ?? $t->format('F');
 
             $hasH1 = $ev->agenda->contains('is_h_minus_1', true) || $t->isTomorrow();
-            $picName = $ev->rencanaKegiatan?->admin?->name ?? 'Bpk. Kurniawan (KP Bengkulu) & Phintraco Sekuritas';
-            $anggaranVal = $ev->rencanaKegiatan?->detailKegiatan?->anggaran ?? 14500000;
+            $picName = $ev->mitra ?: 'KP BEI Bengkulu';
             $pesertaCount = $ev->peserta->count() ?: $ev->kuota_peserta;
             $persen = $ev->kuota_peserta > 0 ? min(100, round(($pesertaCount / $ev->kuota_peserta) * 100)) : 100;
             $descriptionBanner = $this->descriptionSanitizer->firstImageUrl($ev->deskripsi);
-
-            if ($descriptionBanner === null) {
-                $descriptionBanner = $this->descriptionSanitizer->firstImageUrl(
-                    $ev->rencanaKegiatan?->detailKegiatan?->deskripsi,
-                );
-            }
 
             return [
                 'id' => $ev->id,
@@ -106,8 +102,9 @@ class KalenderController extends Controller
                 'status_class' => $ev->status_class,
                 'is_h1' => $hasH1,
                 'pic' => $picName,
-                'anggaran' => 'Rp '.number_format($anggaranVal, 0, ',', '.'),
                 'description_banner' => $descriptionBanner,
+                'pengusul_nama' => $ev->user?->name,
+                'pengusul_email' => $ev->user?->email,
             ];
         });
 
@@ -166,5 +163,66 @@ class KalenderController extends Controller
                 'view' => $request->get('view', 'bulan'),
             ],
         ]);
+    }
+
+    public function sendReminder(Request $request, Kegiatan $kegiatan)
+    {
+        $validated = $request->validate([
+            'include_pengusul' => ['nullable', 'boolean'],
+            'custom_emails' => ['nullable', 'string'],
+            'catatan' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $recipients = collect();
+
+        // Kumpulkan email orang / mitra yang mengusulkan kegiatan
+        if ($request->boolean('include_pengusul', true)) {
+            $kegiatan->loadMissing('user');
+            if (! empty($kegiatan->user?->email)) {
+                $recipients->push([
+                    'email' => $kegiatan->user->email,
+                    'name' => $kegiatan->user->name ?? 'Mitra Pengusul',
+                ]);
+            }
+        }
+
+        // Kumpulkan email manual jika diisi
+        if (! empty($validated['custom_emails'])) {
+            $rawEmails = array_map('trim', explode(',', $validated['custom_emails']));
+            foreach ($rawEmails as $email) {
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $recipients->push([
+                        'email' => $email,
+                        'name' => 'Mitra / Panitia Kegiatan',
+                    ]);
+                }
+            }
+        }
+
+        $uniqueRecipients = $recipients->unique('email')->values();
+
+        if ($uniqueRecipients->isEmpty()) {
+            return back()->with('error', 'Tidak ada email penerima. Kegiatan ini tidak memiliki akun mitra pengusul, silakan isi kolom email tambahan.');
+        }
+
+        $customNote = $validated['catatan'] ?? null;
+        $sentCount = 0;
+
+        foreach ($uniqueRecipients as $r) {
+            try {
+                Mail::to($r['email'])->send(
+                    new KegiatanReminderMail($kegiatan, $r['name'], $customNote)
+                );
+                $sentCount++;
+            } catch (\Throwable $e) {
+                Log::error("Gagal mengirim email pengingat kegiatan ke {$r['email']}: ".$e->getMessage());
+            }
+        }
+
+        if ($sentCount === 0) {
+            return back()->with('error', 'Gagal mengirim email pengingat ke penerima. Periksa konfigurasi SMTP Google.');
+        }
+
+        return back()->with('success', "Pengingat email berhasil dikirim ke {$sentCount} mitra pengusul.");
     }
 }

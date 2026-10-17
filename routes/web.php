@@ -14,11 +14,13 @@ Route::get('/', function () {
 })->name('home');
 
 // Guest / Authentication
+Route::get('/captcha/{action}', [AuthController::class, 'getCaptcha'])->name('captcha');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 
     // Admin Login
     Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
@@ -30,6 +32,19 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
+
+// Email Verification (Link Aktivasi Akun)
+Route::get('/verify-email', [AuthController::class, 'showVerifyEmailForm'])
+    ->middleware('auth:web')
+    ->name('verification.notice');
+
+Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmailLink'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationLink'])
+    ->middleware(['auth:web', 'throttle:6,1'])
+    ->name('verification.send');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -44,7 +59,7 @@ Route::get('/profile-photos/{ownerType}/{ownerId}/{filename}', [ProfilePhotoCont
     ->name('profile-photos.show');
 
 // User Protected Routes
-Route::middleware('auth:web')->name('user.')->group(function () {
+Route::middleware(['auth:web', 'verified'])->name('user.')->group(function () {
     Route::post('/description-images/users', [ActivityDescriptionImageController::class, 'storeForUser'])->name('description-images.store');
     Route::get('/dashboard', [UserCtrl\DashboardController::class, 'index'])->name('dashboard');
 
@@ -84,28 +99,18 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     Route::put('/profil', [AdminCtrl\ProfileController::class, 'update'])->name('profil.update');
     Route::post('/description-images/admins', [ActivityDescriptionImageController::class, 'storeForAdmin'])->name('description-images.store');
 
-    // Perencanaan & Anggaran
-    Route::get('anggaran', [AdminCtrl\RencanaKegiatanController::class, 'index'])->name('anggaran.index');
-    Route::get('rencana-kegiatan/export', [AdminCtrl\RencanaKegiatanController::class, 'export'])->name('rencana-kegiatan.export');
-    Route::post('rencana-kegiatan/{rencana_kegiatan}/ajukan', [AdminCtrl\RencanaKegiatanController::class, 'ajukan'])->name('rencana-kegiatan.ajukan');
-    Route::resource('rencana-kegiatan', AdminCtrl\RencanaKegiatanController::class);
-    Route::post('rencana-kegiatan/{rencana}/detail', [AdminCtrl\DetailKegiatanController::class, 'store'])->name('rencana-kegiatan.detail.store');
-    Route::put('rencana-kegiatan/{rencana}/detail', [AdminCtrl\DetailKegiatanController::class, 'update'])->name('rencana-kegiatan.detail.update');
-
-    // Pengajuan & Approval
-    Route::get('approval', [AdminCtrl\PengajuanKegiatanController::class, 'index'])->name('approval.index');
-    Route::get('pengajuan/export', [AdminCtrl\PengajuanKegiatanController::class, 'export'])->name('pengajuan.export');
-    Route::get('pengajuan', [AdminCtrl\PengajuanKegiatanController::class, 'index'])->name('pengajuan.index');
-    Route::get('pengajuan/{pengajuan}', [AdminCtrl\PengajuanKegiatanController::class, 'show'])->name('pengajuan.show');
-    Route::post('pengajuan', [AdminCtrl\PengajuanKegiatanController::class, 'store'])->name('pengajuan.store');
-    Route::patch('pengajuan/{pengajuan}/status', [AdminCtrl\PengajuanKegiatanController::class, 'updateStatus'])->name('pengajuan.status');
-    Route::patch('approval/kegiatan/{kegiatan}/status', [AdminCtrl\PengajuanKegiatanController::class, 'updateMakerProposalStatus'])->name('approval.kegiatan.status');
+    // Approval proposal mitra
+    Route::get('approval/export', [AdminCtrl\ApprovalController::class, 'export'])->name('approval.export');
+    Route::get('approval', [AdminCtrl\ApprovalController::class, 'index'])->name('approval.index');
+    Route::patch('approval/kegiatan/{kegiatan}/status', [AdminCtrl\ApprovalController::class, 'updateMakerProposalStatus'])->name('approval.kegiatan.status');
 
     // Kalender
     Route::get('kalender', [AdminCtrl\KalenderController::class, 'index'])->name('kalender.index');
+    Route::post('kalender/{kegiatan}/kirim-pengingat', [AdminCtrl\KalenderController::class, 'sendReminder'])->name('kalender.send-reminder');
 
     // Kegiatan & Agenda
     Route::get('kegiatan/{kegiatan}/proposal', [AdminCtrl\KegiatanController::class, 'downloadProposal'])->name('kegiatan.proposal.download');
+    Route::get('kegiatan/{kegiatan}/presensi', [AdminCtrl\KegiatanController::class, 'downloadAttendance'])->name('kegiatan.presensi.download');
     Route::resource('kegiatan', AdminCtrl\KegiatanController::class);
     Route::resource('kegiatan.agenda', AdminCtrl\AgendaController::class)->shallow();
 

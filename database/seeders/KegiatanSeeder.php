@@ -4,11 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Admin;
 use App\Models\Agenda;
-use App\Models\DetailKegiatan;
 use App\Models\Kegiatan;
 use App\Models\LaporanKegiatan;
-use App\Models\PengajuanKegiatan;
-use App\Models\RencanaKegiatan;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -45,7 +42,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Gedung B Ruang Seminar GI UNIB Bengkulu',
                 'kuota' => 245,
                 'status' => 'dipublikasikan',
-                'anggaran' => 14500000,
                 'is_h1' => true,
                 'has_lpj' => false,
             ],
@@ -58,7 +54,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Hotel Gumaya Semarang',
                 'kuota' => 45,
                 'status' => 'menunggu_approval',
-                'anggaran' => 38500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -71,7 +66,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Aula Pascasarjana UINSU Medan',
                 'kuota' => 150,
                 'status' => 'disetujui',
-                'anggaran' => 22400000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -84,7 +78,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Kantor Perwakilan Surabaya',
                 'kuota' => 60,
                 'status' => 'berlangsung',
-                'anggaran' => 18000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -97,7 +90,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Gedung Wiswa Sabha Renon',
                 'kuota' => 200,
                 'status' => 'selesai',
-                'anggaran' => 12000000,
                 'is_h1' => false,
                 'has_lpj' => true,
             ],
@@ -110,7 +102,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'GI BEI UNIB',
                 'kuota' => 30,
                 'status' => 'selesai',
-                'anggaran' => 5000000,
                 'is_h1' => false,
                 'has_lpj' => true,
             ],
@@ -123,7 +114,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Galeri Investasi UNIB',
                 'kuota' => 100,
                 'status' => 'dipublikasikan',
-                'anggaran' => 8500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -136,7 +126,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Zoom Webinar',
                 'kuota' => 300,
                 'status' => 'dipublikasikan',
-                'anggaran' => 6000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -149,7 +138,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Aula Pascasarjana UINSU',
                 'kuota' => 120,
                 'status' => 'dipublikasikan',
-                'anggaran' => 14000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -162,7 +150,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Politeknik Negeri Bandung',
                 'kuota' => 80,
                 'status' => 'dipublikasikan',
-                'anggaran' => 11000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -175,7 +162,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Aula Pemprov Bengkulu',
                 'kuota' => 150,
                 'status' => 'dipublikasikan',
-                'anggaran' => 15000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -188,7 +174,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'FEB Universitas Bengkulu',
                 'kuota' => 75,
                 'status' => 'dipublikasikan',
-                'anggaran' => 9500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -201,7 +186,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Ruang Rapat KP BEI',
                 'kuota' => 20,
                 'status' => 'menunggu_approval',
-                'anggaran' => 4500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -214,7 +198,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'Hotel Gumaya Semarang',
                 'kuota' => 110,
                 'status' => 'dipublikasikan',
-                'anggaran' => 16500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -227,7 +210,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'SMAN 1 Bengkulu',
                 'kuota' => 60,
                 'status' => 'dipublikasikan',
-                'anggaran' => 7500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -240,7 +222,6 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'UMB Bengkulu',
                 'kuota' => 40,
                 'status' => 'menunggu_approval',
-                'anggaran' => 8000000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
@@ -253,48 +234,15 @@ class KegiatanSeeder extends Seeder
                 'lokasi' => 'GI BEI UMB',
                 'kuota' => 50,
                 'status' => 'dipublikasikan',
-                'anggaran' => 6500000,
                 'is_h1' => false,
                 'has_lpj' => false,
             ],
         ];
 
         foreach ($items as $data) {
-            $rencana = RencanaKegiatan::create([
-                'admin_id' => $admin->id,
-                'nama_kegiatan' => $data['nama'],
-                'jenis_kegiatan' => $data['jenis'],
-                'tanggal_rencana' => $data['tanggal'],
-                'status' => $data['status'] === 'menunggu_approval' ? 'diajukan' : 'disetujui',
-                'keterangan' => 'Rencana kegiatan edukasi TA 2025',
-            ]);
-
-            DetailKegiatan::create([
-                'rencana_kegiatan_id' => $rencana->id,
-                'deskripsi' => 'Pelaksanaan program ' . $data['nama'] . ' bersama mitra KP BEI.',
-                'jenis_kegiatan' => $data['jenis'],
-                'tanggal' => $data['tanggal'],
-                'waktu_mulai' => $data['mulai'],
-                'waktu_selesai' => $data['selesai'],
-                'lokasi' => $data['lokasi'],
-                'target_peserta' => $data['kuota'],
-                'anggaran' => $data['anggaran'],
-            ]);
-
-            $pengajuan = PengajuanKegiatan::create([
-                'rencana_kegiatan_id' => $rencana->id,
-                'admin_id' => $admin->id,
-                'nomor_pengajuan' => 'PROP-' . date('Ymd', strtotime($data['tanggal'])) . '-' . sprintf('%03d', $rencana->id),
-                'tanggal_pengajuan' => $data['tanggal'],
-                'status' => $data['status'] === 'menunggu_approval' ? 'diajukan' : 'disetujui',
-                'catatan' => 'Diajukan untuk pelaksanaan kegiatan.',
-            ]);
-
             $kegiatan = Kegiatan::create([
-                'pengajuan_kegiatan_id' => $pengajuan->id,
-                'rencana_kegiatan_id' => $rencana->id,
                 'nama_kegiatan' => $data['nama'],
-                'deskripsi' => 'Program edukasi dan sosialisasi pasar modal: ' . $data['nama'],
+                'deskripsi' => 'Program edukasi dan sosialisasi pasar modal: '.$data['nama'],
                 'jenis_kegiatan' => $data['jenis'],
                 'tanggal' => $data['tanggal'],
                 'waktu_mulai' => $data['mulai'],
@@ -306,7 +254,7 @@ class KegiatanSeeder extends Seeder
 
             Agenda::create([
                 'kegiatan_id' => $kegiatan->id,
-                'judul' => $data['nama'] . ($data['is_h1'] ? ' (H-1)' : ''),
+                'judul' => $data['nama'].($data['is_h1'] ? ' (H-1)' : ''),
                 'tanggal' => $data['tanggal'],
                 'waktu_mulai' => $data['mulai'],
                 'waktu_selesai' => $data['selesai'],
@@ -323,7 +271,7 @@ class KegiatanSeeder extends Seeder
                 LaporanKegiatan::create([
                     'kegiatan_id' => $kegiatan->id,
                     'admin_id' => $admin->id,
-                    'judul_laporan' => 'LPJ - ' . $data['nama'],
+                    'judul_laporan' => 'LPJ - '.$data['nama'],
                     'tanggal_laporan' => $data['tanggal'],
                     'isi_laporan' => 'Kegiatan telah dilaksanakan dengan baik dan terdokumentasi.',
                     'total_peserta_hadir' => $data['kuota'],

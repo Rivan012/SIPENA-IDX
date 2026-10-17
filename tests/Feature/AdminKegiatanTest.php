@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin;
 use App\Models\Kegiatan;
+use App\Models\Peserta;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -200,6 +201,235 @@ class AdminKegiatanTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Sosialisasi Cerdas Investasi');
         $response->assertSee('Zoom Webinar');
+    }
+
+    public function test_admin_can_download_attendance_pdf_in_both_orientations(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $this->actingAs($this->admin, 'admin');
+
+        foreach ([
+            'portrait' => '/MediaBox\s+\[0(?:\.0+)?\s+0(?:\.0+)?\s+595(?:\.\d+)?\s+841(?:\.\d+)?\]/',
+            'landscape' => '/MediaBox\s+\[0(?:\.0+)?\s+0(?:\.0+)?\s+841(?:\.\d+)?\s+595(?:\.\d+)?\]/',
+        ] as $orientation => $mediaBoxPattern) {
+            $response = $this->get(route('admin.kegiatan.presensi.download', [
+                'kegiatan' => $kegiatan,
+                'orientation' => $orientation,
+            ]));
+
+            $response->assertOk();
+            $response->assertHeader('Content-Type', 'application/pdf');
+            $response->assertHeader('Content-Disposition', "attachment; filename=presensi-{$kegiatan->id}-{$orientation}.pdf");
+            $this->assertSame('%PDF', substr($response->getContent(), 0, 4));
+            $this->assertTrue(
+                preg_match($mediaBoxPattern, $response->getContent()) === 1,
+                "The {$orientation} PDF has incorrect page dimensions.",
+            );
+
+            if ($orientation === 'landscape') {
+                $this->assertSame(
+                    1,
+                    preg_match_all('/\/Type\s*\/Page\b/', $response->getContent()),
+                    'The landscape attendance PDF should fit on one page.',
+                );
+            }
+        }
+    }
+
+    public function test_admin_cannot_download_attendance_pdf_for_non_scheduled_activity(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Proposal Menunggu',
+            'deskripsi' => 'Belum dijadwalkan',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'menunggu_approval',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.kegiatan.presensi.download', [
+                'kegiatan' => $kegiatan,
+                'orientation' => 'portrait',
+            ]));
+
+        $response->assertNotFound();
+    }
+
+    public function test_guest_cannot_download_attendance_pdf(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->get(route('admin.kegiatan.presensi.download', [
+            'kegiatan' => $kegiatan,
+            'orientation' => 'portrait',
+        ]));
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_regular_user_cannot_download_attendance_pdf(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->actingAs(User::factory()->create(), 'web')
+            ->get(route('admin.kegiatan.presensi.download', [
+                'kegiatan' => $kegiatan,
+                'orientation' => 'portrait',
+            ]));
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_admin_cannot_download_attendance_pdf_with_invalid_orientation(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.kegiatan.presensi.download', [
+                'kegiatan' => $kegiatan,
+                'orientation' => 'diagonal',
+            ]));
+
+        $response->assertSessionHasErrors('orientation');
+    }
+
+    public function test_attendance_template_renders_twenty_five_blank_rows_and_privacy_consent(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+        $participant = User::factory()->create(['name' => 'Peserta Kegiatan Ini']);
+        $participant->update(['no_telepon' => '081234567890']);
+        Peserta::create(['kegiatan_id' => $kegiatan->id, 'user_id' => $participant->id]);
+
+        $html = view('admin.kegiatan.presensi', [
+            'kegiatan' => $kegiatan->load('peserta.user'),
+            'orientation' => 'portrait',
+        ])->render();
+        $document = new \DOMDocument;
+        $document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($document);
+        $letterhead = $xpath->query("//table[@class='letterhead']");
+        $heading = $xpath->query("//table[@class='letterhead']//h1");
+        $logo = $xpath->query("//table[@class='letterhead']//img[@alt='Logo IDX']");
+        $fieldLabels = $xpath->query("//table[@class='event-details']//td[@class='label']");
+        $fieldValues = $xpath->query("//table[@class='event-details']//td[@class='field-value']");
+        $rows = $xpath->query("//table[contains(concat(' ', normalize-space(@class), ' '), ' roster ')]/tbody/tr");
+
+        $this->assertCount(1, $letterhead);
+        $this->assertSame('FORMULIR DAFTAR HADIR PESERTA', trim($heading->item(0)->textContent));
+        $this->assertCount(1, $logo);
+        $this->assertSame('portrait', $document->getElementsByTagName('body')->item(0)->getAttribute('class'));
+        $this->assertStringContainsString('.portrait .number', $html);
+        $this->assertStringContainsString('width: 5mm;', $html);
+        $this->assertStringContainsString('.portrait .name', $html);
+        $this->assertStringContainsString('width: 44mm;', $html);
+        $this->assertStringContainsString('.portrait .phone', $html);
+        $this->assertStringContainsString('width: 52mm;', $html);
+        $this->assertSame(['KP BEI', 'KEGIATAN', 'TANGGAL'], array_map(
+            fn ($label): string => trim($label->textContent),
+            iterator_to_array($fieldLabels),
+        ));
+        $this->assertSame([
+            'Bengkulu',
+            $kegiatan->nama_kegiatan,
+            $kegiatan->tanggal->format('d/m/Y'),
+        ], array_map(
+            fn ($value): string => trim($value->textContent),
+            iterator_to_array($fieldValues),
+        ));
+        $this->assertCount(25, $rows);
+        $this->assertFalse(str_contains($html, 'Peserta Kegiatan Ini'));
+        $this->assertFalse(str_contains($html, $participant->email));
+        $this->assertFalse(str_contains($html, '081234567890'));
+        $this->assertStringContainsString('PERLINDUNGAN DATA PRIBADI', $html);
+        $this->assertStringContainsString('contactcenter@idx.co.id', $html);
+
+        foreach ($rows as $index => $row) {
+            $cells = $xpath->query('./td', $row);
+
+            $this->assertCount(5, $cells);
+            $this->assertSame((string) ($index + 1), trim($cells->item(0)->textContent));
+
+            foreach ([1, 2, 3, 4] as $columnIndex) {
+                $this->assertSame('', trim($cells->item($columnIndex)->textContent));
+            }
+        }
+    }
+
+    public function test_landscape_attendance_template_renders_fifteen_blank_rows(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Sosialisasi Investasi',
+            'deskripsi' => 'Edukasi masyarakat umum',
+            'jenis_kegiatan' => 'Sosialisasi',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '10:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+        ]);
+
+        $html = view('admin.kegiatan.presensi', [
+            'kegiatan' => $kegiatan,
+            'orientation' => 'landscape',
+        ])->render();
+        $document = new \DOMDocument;
+        $document->loadHTML($html, LIBXML_NOERROR | LIBXML_NOWARNING);
+        $xpath = new \DOMXPath($document);
+        $rows = $xpath->query("//table[contains(concat(' ', normalize-space(@class), ' '), ' roster ')]/tbody/tr");
+
+        $this->assertSame('landscape', $document->getElementsByTagName('body')->item(0)->getAttribute('class'));
+        $this->assertCount(15, $rows);
+
+        foreach ($rows as $index => $row) {
+            $cells = $xpath->query('./td', $row);
+
+            $this->assertSame((string) ($index + 1), trim($cells->item(0)->textContent));
+            foreach ([1, 2, 3, 4] as $columnIndex) {
+                $this->assertSame('', trim($cells->item($columnIndex)->textContent));
+            }
+        }
     }
 
     public function test_admin_can_view_edit_and_update_kegiatan(): void
