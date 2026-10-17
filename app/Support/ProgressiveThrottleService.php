@@ -42,10 +42,8 @@ class ProgressiveThrottleService
         $levelKey = self::levelKey($action, $identifier);
         $lockKey = self::lockKey($action, $identifier);
 
-        $attempts = Cache::increment($attemptsKey, 1);
-        if ($attempts === 1) {
-            Cache::put($attemptsKey, 1, 86400);
-        }
+        $attempts = (int) Cache::get($attemptsKey, 0) + 1;
+        Cache::put($attemptsKey, $attempts, 86400);
 
         if ($attempts >= 3) {
             $currentLevel = (int) Cache::get($levelKey, 0) + 1;
