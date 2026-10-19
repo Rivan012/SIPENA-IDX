@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SortableTh from '@/Components/SortableTh.vue';
+import { PdfIcon } from '@/Icons';
 
 const props = defineProps({
     aktivitas: Object,
@@ -15,6 +16,15 @@ const search = ref(props.filters?.search || '');
 const currentRole = ref(props.filters?.role || '');
 const currentSort = ref(props.filters?.sort || 'created_at');
 const currentDirection = ref(props.filters?.direction || 'desc');
+
+const exportPdfUrl = computed(() => {
+    return route('admin.aktivitas.export', {
+        search: search.value || undefined,
+        role: currentRole.value || undefined,
+        sort: currentSort.value || undefined,
+        direction: currentDirection.value || undefined,
+    });
+});
 
 const handleFilter = () => {
     router.get(route('admin.aktivitas.index'), {
@@ -54,6 +64,14 @@ const getActionBadge = (aksi) => {
                 <div>
                     <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Riwayat Aktivitas</h1>
                     <p class="text-xs text-slate-500 mt-0.5">Audit log dan catatan riwayat tindakan administrator serta mitra.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <a :href="exportPdfUrl"
+                       class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-xs inline-flex items-center gap-1.5">
+                        <PdfIcon class="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Ekspor PDF</span>
+                    </a>
                 </div>
             </div>
 

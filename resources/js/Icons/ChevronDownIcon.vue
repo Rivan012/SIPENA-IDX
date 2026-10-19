@@ -1,11 +1,8 @@
+<script setup>
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+</script>
+
 <template>
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4.79175 7.396L10.0001 12.6043L15.2084 7.396"
-      stroke="currentColor"
-      stroke-width="1.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  </svg>
+  <FontAwesomeIcon :icon=faChevronDown v-bind="$attrs" />
 </template>

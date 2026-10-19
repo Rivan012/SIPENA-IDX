@@ -228,12 +228,12 @@ class AdminApprovalTest extends TestCase
         $this->assertSame('menunggu_approval', $proposal->fresh()->status);
     }
 
-    public function test_admin_can_export_approval_csv(): void
+    public function test_admin_can_export_approval_pdf(): void
     {
         $maker = User::factory()->create();
         Kegiatan::create([
             'user_id' => $maker->id,
-            'nama_kegiatan' => 'CSV Maker Proposal',
+            'nama_kegiatan' => 'PDF Maker Proposal',
             'deskripsi' => 'Proposal untuk ekspor',
             'jenis_kegiatan' => 'Workshop',
             'tanggal' => now()->addDays(10)->format('Y-m-d'),
@@ -246,14 +246,14 @@ class AdminApprovalTest extends TestCase
             ->get(route('admin.approval.export'));
 
         $response->assertStatus(200);
-        $this->assertTrue(str_contains($response->headers->get('content-type'), 'text/csv'));
-        $this->assertStringContainsString('CSV Maker Proposal', $response->streamedContent());
-        $this->assertStringNotContainsString('Alokasi Anggaran', $response->streamedContent());
+        $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
 
         $filteredResponse = $this->actingAs($this->admin, 'admin')
-            ->get(route('admin.approval.export', ['search' => 'CSV Maker']));
-        $filteredCsv = $filteredResponse->streamedContent();
-        $this->assertStringContainsString('CSV Maker Proposal', $filteredCsv);
+            ->get(route('admin.approval.export', ['search' => 'PDF Maker']));
+        $filteredResponse->assertStatus(200);
+        $this->assertTrue(str_contains($filteredResponse->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $filteredResponse->getContent());
     }
 
     public function test_dashboard_keeps_maker_proposals_after_budget_removal(): void

@@ -133,5 +133,6 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     Route::get('pengguna', [AdminCtrl\MonitoringController::class, 'index'])->name('pengguna.index');
 
     // Riwayat Aktivitas
+    Route::get('aktivitas/export', [AdminCtrl\AktivitasController::class, 'export'])->name('aktivitas.export');
     Route::get('aktivitas', [AdminCtrl\AktivitasController::class, 'index'])->name('aktivitas.index');
 });

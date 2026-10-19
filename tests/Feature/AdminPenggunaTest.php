@@ -59,11 +59,20 @@ class AdminPenggunaTest extends TestCase
         );
     }
 
-    public function test_admin_can_export_users_csv(): void
+    public function test_admin_can_export_users_pdf(): void
     {
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/monitoring/export');
         $response->assertStatus(200);
-        $this->assertTrue(str_contains($response->headers->get('content-type'), 'text/csv'));
+        $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
+
+    public function test_admin_can_export_aktivitas_pdf(): void
+    {
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/aktivitas/export');
+        $response->assertStatus(200);
+        $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
 
     public function test_dashboard_shows_maker_proposals_grouped_by_status(): void

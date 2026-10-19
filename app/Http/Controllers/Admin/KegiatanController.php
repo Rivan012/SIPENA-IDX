@@ -43,8 +43,8 @@ class KegiatanController extends Controller
                 ->orderByDesc('tanggal');
         }
 
-        if ($request->export === 'csv') {
-            return $this->exportCsv($query->get());
+        if ($request->export === 'pdf' || $request->export === 'csv') {
+            return $this->exportPdf($query->get(), $request);
         }
 
         $year = $this->manageableActivitiesQuery()->whereYear('tanggal', now()->year)->exists() ? now()->year : 2025;
@@ -218,26 +218,27 @@ class KegiatanController extends Controller
         ];
     }
 
-    private function exportCsv($rows)
+    private function exportPdf($rows, Request $request)
     {
-        return response()->streamDownload(function () use ($rows) {
-            $out = fopen('php://output', 'w');
-            fputcsv($out, ['Kode', 'Nama Kegiatan', 'Kategori', 'Tanggal', 'Waktu', 'Lokasi', 'Mitra', 'Target Peserta', 'Peserta', 'Status']);
-            foreach ($rows as $k) {
-                fputcsv($out, [
-                    $k->kode,
-                    $k->nama_kegiatan,
-                    $k->jenis_kegiatan,
-                    $k->tanggal?->format('Y-m-d'),
-                    substr($k->waktu_mulai, 0, 5),
-                    $k->lokasi,
-                    $k->mitra,
-                    $k->kuota_peserta,
-                    $k->peserta_count,
-                    $k->status_label,
-                ]);
-            }
-            fclose($out);
-        }, 'jadwal-kegiatan-'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv']);
+        $stats = [
+            'total' => $rows->count(),
+            'disetujui' => $rows->where('status', 'disetujui')->count(),
+            'terjadwal' => $rows->where('status', 'dipublikasikan')->count(),
+            'berjalan' => $rows->where('status', 'berlangsung')->count(),
+            'selesai' => $rows->where('status', 'selesai')->count(),
+            'menunggu' => $rows->where('status', 'menunggu_approval')->count(),
+        ];
+
+        $filters = $request->only(['search', 'status', 'kategori']);
+        $printedBy = auth('admin')->user()?->name ?? 'Administrator KP BEI Bengkulu';
+
+        return Pdf::loadView('pdf.kegiatan', [
+            'items' => $rows,
+            'stats' => $stats,
+            'filters' => $filters,
+            'printedBy' => $printedBy,
+        ])
+            ->setPaper('a4', 'landscape')
+            ->download('laporan-kegiatan-'.now()->format('Ymd-His').'.pdf');
     }
 }

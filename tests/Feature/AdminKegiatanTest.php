@@ -148,12 +148,10 @@ class AdminKegiatanTest extends TestCase
             'status' => 'menunggu_approval',
         ]);
 
-        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan?export=csv');
-        $csv = $response->streamedContent();
-
-        $this->assertStringContainsString('CSV disetujui', $csv);
-        $this->assertStringContainsString('CSV Legacy Menunggu', $csv);
-        $this->assertStringNotContainsString('CSV menunggu_approval', $csv);
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan?export=pdf');
+        $response->assertStatus(200);
+        $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
 
     public function test_admin_can_view_create_page(): void
@@ -487,7 +485,7 @@ class AdminKegiatanTest extends TestCase
         $this->assertDatabaseMissing('kegiatan', ['id' => $kegiatan->id]);
     }
 
-    public function test_admin_can_export_csv(): void
+    public function test_admin_can_export_pdf(): void
     {
         Kegiatan::create([
             'nama_kegiatan' => 'Kegiatan Ekspor',
@@ -499,9 +497,10 @@ class AdminKegiatanTest extends TestCase
             'status' => 'dipublikasikan',
         ]);
 
-        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan?export=csv');
+        $response = $this->actingAs($this->admin, 'admin')->get('/admin/kegiatan?export=pdf');
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $this->assertTrue(str_contains($response->headers->get('content-type'), 'application/pdf'));
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
     }
 
     public function test_admin_can_update_kegiatan_status_directly(): void

@@ -1,6 +1,10 @@
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
+import '@fortawesome/fontawesome-svg-core/styles.css';
+import { config } from '@fortawesome/fontawesome-svg-core';
+
+config.autoAddCss = false;
 
 createInertiaApp({
     title: (title) => (title ? `${title} — SIPENA IDX` : 'SIPENA — IDX Bengkulu'),

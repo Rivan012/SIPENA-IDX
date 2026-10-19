@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SortableTh from '@/Components/SortableTh.vue';
+import { PdfIcon } from '@/Icons';
 
 const props = defineProps({
     users: Object,
@@ -59,6 +60,15 @@ const sortedAdmins = computed(() => {
     });
 });
 
+const exportPdfUrl = computed(() => {
+    return route('admin.monitoring.export', {
+        role: activeTab.value,
+        search: search.value || undefined,
+        sort: activeTab.value === 'admins' ? adminSort.value : (currentSort.value || undefined),
+        direction: activeTab.value === 'admins' ? adminDirection.value : (currentDirection.value || undefined),
+    });
+});
+
 // Modal riwayat kegiatan user
 const showHistoryModal = ref(false);
 const selectedUser = ref(null);
@@ -82,9 +92,10 @@ const viewHistory = (u) => {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a :href="route('admin.monitoring.export')"
-                       class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-xs">
-                        &darr; Ekspor Data CSV
+                    <a :href="exportPdfUrl"
+                       class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-xs inline-flex items-center gap-1.5">
+                        <PdfIcon class="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Ekspor PDF</span>
                     </a>
                 </div>
             </div>
@@ -176,7 +187,7 @@ const viewHistory = (u) => {
                                 <td class="py-3 px-4 text-right whitespace-nowrap">
                                     <button type="button" @click="viewHistory(u)"
                                             class="text-xs font-semibold text-[#680A10] hover:underline">
-                                        Riwayat Kegiatan &rarr;
+                                        Riwayat Kegiatan
                                     </button>
                                 </td>
                             </tr>

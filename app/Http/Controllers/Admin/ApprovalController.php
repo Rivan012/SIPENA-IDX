@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Aktivitas;
 use App\Models\Kegiatan;
 use App\Support\KegiatanNotificationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,42 +59,40 @@ class ApprovalController extends Controller
         ]);
     }
 
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request)
     {
-        $items = $this->approvalItemsQuery($request)
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->get();
+        $sort = $request->get('sort');
+        $direction = strtolower($request->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $allowedSorts = ['nama_kegiatan', 'jenis_kegiatan', 'created_at', 'status', 'mitra'];
 
-        return response()->streamDownload(function () use ($items): void {
-            $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, [
-                'Nomor',
-                'Nama Kegiatan',
-                'Kategori',
-                'Pengusul',
-                'Tanggal Pengajuan',
-                'Status Approval',
-                'Catatan Review',
-            ]);
+        $query = $this->approvalItemsQuery($request)->with(['user']);
 
-            foreach ($items as $kegiatan) {
-                fputcsv($handle, [
-                    'MKR-'.sprintf('%05d', $kegiatan->id),
-                    $kegiatan->nama_kegiatan,
-                    $kegiatan->jenis_kegiatan,
-                    $kegiatan->user?->name ?: $kegiatan->mitra ?: '-',
-                    $kegiatan->created_at?->toDateString() ?: '-',
-                    $kegiatan->status_label,
-                    $kegiatan->approval_note ?: '-',
-                ]);
-            }
+        if ($sort && in_array($sort, $allowedSorts, true)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderByDesc('created_at')->orderByDesc('id');
+        }
 
-            fclose($handle);
-        }, 'daftar-approval-proposal-'.date('Ymd-His').'.csv', [
-            'Content-Type' => 'text/csv; charset=utf-8',
-        ]);
+        $items = $query->get();
+
+        $stats = [
+            'total' => $items->count(),
+            'pending_total' => $items->whereIn('status', ['menunggu_approval', 'diproses'])->count(),
+            'disetujui' => $items->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'])->count(),
+            'perhatian' => $items->whereIn('status', ['revisi', 'ditolak'])->count(),
+        ];
+
+        $filters = $request->only(['search', 'status', 'kategori']);
+        $printedBy = auth('admin')->user()?->name ?? 'Administrator KP BEI Bengkulu';
+
+        return Pdf::loadView('pdf.approval', [
+            'items' => $items,
+            'stats' => $stats,
+            'filters' => $filters,
+            'printedBy' => $printedBy,
+        ])
+            ->setPaper('a4', 'landscape')
+            ->download('daftar-approval-proposal-'.date('Ymd-His').'.pdf');
     }
 
     public function updateMakerProposalStatus(Request $request, Kegiatan $kegiatan): RedirectResponse

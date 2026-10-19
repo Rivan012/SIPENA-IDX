@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SortableTh from '@/Components/SortableTh.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
+import { PdfIcon } from '@/Icons';
 
 const props = defineProps({
     approvalItems: Object,
@@ -18,6 +19,16 @@ const currentStatus = ref(props.filters?.status || '');
 const currentKategori = ref(props.filters?.kategori || '');
 const currentSort = ref(props.filters?.sort || '');
 const currentDirection = ref(props.filters?.direction || 'asc');
+
+const exportPdfUrl = computed(() => {
+    return route('admin.approval.export', {
+        search: search.value || undefined,
+        status: currentStatus.value || undefined,
+        kategori: currentKategori.value || undefined,
+        sort: currentSort.value || undefined,
+        direction: currentDirection.value || undefined,
+    });
+});
 
 const handleFilter = () => {
     router.get(route('admin.approval.index'), {
@@ -102,9 +113,10 @@ const handleStatusTransition = async (item, nextStatus, actionLabel) => {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a :href="route('admin.approval.export', filters)"
-                       class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-xs">
-                        &darr; Ekspor CSV
+                    <a :href="exportPdfUrl"
+                       class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-xs inline-flex items-center gap-1.5">
+                        <PdfIcon class="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Ekspor PDF</span>
                     </a>
                 </div>
             </div>

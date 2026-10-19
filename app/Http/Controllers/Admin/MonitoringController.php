@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Peserta;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -14,7 +15,7 @@ class MonitoringController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->get('export') === 'csv') {
+        if ($request->get('export') === 'pdf' || $request->get('export') === 'csv') {
             return $this->export($request);
         }
 
@@ -75,41 +76,80 @@ class MonitoringController extends Controller
         ]);
     }
 
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request)
     {
-        $users = User::with(['kegiatan'])->latest()->get();
+        $role = $request->get('role', 'users');
+        $search = $request->get('search');
+        $sort = $request->get('sort');
+        $direction = strtolower($request->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $printedBy = auth('admin')->user()?->name ?? 'Administrator KP BEI Bengkulu';
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="data-mitra-'.date('Ymd-His').'.csv"',
+        if ($role === 'admins') {
+            $adminQuery = Admin::query();
+            if ($search) {
+                $adminQuery->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('jabatan', 'like', "%{$search}%")
+                        ->orWhere('no_telepon', 'like', "%{$search}%");
+                });
+            }
+
+            if ($sort && in_array($sort, ['name', 'email', 'jabatan', 'created_at'], true)) {
+                $adminQuery->orderBy($sort, $direction);
+            } else {
+                $adminQuery->latest();
+            }
+
+            $admins = $adminQuery->get();
+            $stats = ['total' => $admins->count()];
+
+            return Pdf::loadView('pdf.pengguna', [
+                'role' => 'admins',
+                'admins' => $admins,
+                'stats' => $stats,
+                'filters' => $request->only(['search', 'role']),
+                'printedBy' => $printedBy,
+            ])
+                ->setPaper('a4', 'landscape')
+                ->download('data-administrator-'.date('Ymd-His').'.pdf');
+        }
+
+        $userQuery = User::with(['kegiatan'])->withCount('kegiatan');
+
+        if ($search) {
+            $userQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('no_telepon', 'like', "%{$search}%");
+            });
+        }
+
+        if ($sort === 'kegiatan_count') {
+            $userQuery->orderBy('kegiatan_count', $direction);
+        } elseif (in_array($sort, ['name', 'email', 'created_at'], true)) {
+            $userQuery->orderBy($sort, $direction);
+        } else {
+            $userQuery->latest();
+        }
+
+        $users = $userQuery->get();
+
+        $stats = [
+            'total' => $users->count(),
+            'terverifikasi' => $users->whereNotNull('email_verified_at')->count(),
+            'belum_verifikasi' => $users->whereNull('email_verified_at')->count(),
+            'total_partisipasi' => $users->sum('kegiatan_count'),
         ];
 
-        return response()->stream(function () use ($users) {
-            $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, [
-                'ID',
-                'Nama Mitra',
-                'Email',
-                'No. Telepon',
-                'Total Kegiatan Diikuti',
-                'Terakhir Terdaftar',
-                'Tanggal Registrasi',
-            ]);
-
-            foreach ($users as $u) {
-                $lastKegiatan = $u->kegiatan->sortByDesc('pivot.created_at')->first();
-                fputcsv($handle, [
-                    $u->id,
-                    $u->name,
-                    $u->email,
-                    $u->no_telepon ?? '-',
-                    $u->kegiatan->count(),
-                    $lastKegiatan ? $lastKegiatan->nama_kegiatan : '-',
-                    $u->created_at?->format('d/m/Y H:i') ?? '-',
-                ]);
-            }
-            fclose($handle);
-        }, 200, $headers);
+        return Pdf::loadView('pdf.pengguna', [
+            'role' => 'users',
+            'users' => $users,
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'role']),
+            'printedBy' => $printedBy,
+        ])
+            ->setPaper('a4', 'landscape')
+            ->download('data-mitra-'.date('Ymd-His').'.pdf');
     }
 }

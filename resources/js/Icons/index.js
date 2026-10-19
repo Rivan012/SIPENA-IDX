@@ -30,6 +30,7 @@ export { default as MenuIcon } from './MenuIcon.vue';
 export { default as Message2Line } from './Message2Line.vue';
 export { default as PageIcon } from './PageIcon.vue';
 export { default as PaperclipIcon } from './PaperclipIcon.vue';
+export { default as PdfIcon } from './PdfIcon.vue';
 export { default as PieChartIcon } from './PieChartIcon.vue';
 export { default as PlugInIcon } from './PlugInIcon.vue';
 export { default as PlusIcon } from './PlusIcon.vue';

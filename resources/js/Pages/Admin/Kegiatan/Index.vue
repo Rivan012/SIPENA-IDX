@@ -10,7 +10,8 @@ import {
     RefreshIcon,
     CheckIcon,
     DocsIcon,
-    TrashIcon
+    TrashIcon,
+    PdfIcon
 } from '@/Icons';
 
 const props = defineProps({
@@ -25,6 +26,17 @@ const currentStatus = ref(props.filters?.status || '');
 const currentKategori = ref(props.filters?.kategori || '');
 const currentSort = ref(props.filters?.sort || '');
 const currentDirection = ref(props.filters?.direction || 'asc');
+
+const exportPdfUrl = computed(() => {
+    return route('admin.kegiatan.index', {
+        export: 'pdf',
+        search: search.value || undefined,
+        status: currentStatus.value || undefined,
+        kategori: currentKategori.value || undefined,
+        sort: currentSort.value || undefined,
+        direction: currentDirection.value || undefined,
+    });
+});
 
 const handleFilter = () => {
     router.get(route('admin.kegiatan.index'), {
@@ -160,10 +172,11 @@ const changeStatus = async (k, newStatus) => {
 
                 <div class="flex items-center gap-2">
                     <a
-                        :href="route('admin.kegiatan.index', { export: 'csv', ...filters })"
+                        :href="exportPdfUrl"
                         class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-2xs inline-flex items-center gap-1.5"
                     >
-                        <span>Unduh CSV</span>
+                        <PdfIcon class="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span>Ekspor PDF</span>
                     </a>
                     <Link
                         :href="route('admin.kegiatan.create')"
