@@ -72,7 +72,17 @@ const submitMakerDecision = () => {
     });
 };
 
+const isHariH = (tanggal) => {
+    if (!tanggal) return false;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return String(tanggal).substring(0, 10) === today;
+};
+
 const handleStatusTransition = async (item, nextStatus, actionLabel) => {
+    if (nextStatus === 'selesai' && (item.status !== 'berlangsung' || !isHariH(item.tanggal))) {
+        return;
+    }
     const statusText = nextStatus === 'dipublikasikan'
         ? 'Terjadwal'
         : nextStatus === 'berlangsung'
@@ -260,7 +270,7 @@ const handleStatusTransition = async (item, nextStatus, actionLabel) => {
                                             Berlangsung
                                         </button>
 
-                                        <button v-else-if="item.status === 'berlangsung'"
+                                        <button v-else-if="item.status === 'berlangsung' && isHariH(item.tanggal)"
                                                 type="button"
                                                 @click="handleStatusTransition(item, 'selesai', 'Selesaikan')"
                                                 class="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-[11px] shadow-xs cursor-pointer">

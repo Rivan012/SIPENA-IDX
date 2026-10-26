@@ -190,6 +190,7 @@ class ApprovalController extends Controller
             'identifier' => 'MKR-'.sprintf('%05d', $kegiatan->id),
             'nama_kegiatan' => $kegiatan->nama_kegiatan,
             'jenis_kegiatan' => $kegiatan->jenis_kegiatan,
+            'tanggal' => $kegiatan->tanggal,
             'submitted_at' => $kegiatan->created_at,
             'submitter' => $kegiatan->user?->name,
             'mitra' => $kegiatan->mitra,

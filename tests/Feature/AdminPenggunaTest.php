@@ -106,7 +106,9 @@ class AdminPenggunaTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('User/Dashboard')
             ->where('proposedCount', 1)
-            ->where('otherStatusCount', 5)
+            ->where('approvedCount', 3)
+            ->where('revisionCount', 0)
+            ->where('rejectedCount', 1)
             ->where('completedCount', 1)
         );
     }
@@ -144,6 +146,69 @@ class AdminPenggunaTest extends TestCase
         $responseDetail->assertInertia(fn (AssertableInertia $page) => $page
             ->component('User/Kegiatan/Show')
             ->where('kegiatan.nama_kegiatan', 'SPM Batch Terbuka')
+        );
+    }
+
+    public function test_user_can_filter_proposals_by_status_in_kegiatan_saya(): void
+    {
+        Kegiatan::create([
+            'user_id' => $this->user->id,
+            'nama_kegiatan' => 'Proposal Disetujui Filter',
+            'deskripsi' => 'Deskripsi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(2)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'BEI',
+            'status' => 'disetujui',
+            'kuota_peserta' => 30,
+        ]);
+
+        Kegiatan::create([
+            'user_id' => $this->user->id,
+            'nama_kegiatan' => 'Proposal Ditolak Filter',
+            'deskripsi' => 'Deskripsi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'BEI',
+            'status' => 'ditolak',
+            'kuota_peserta' => 30,
+        ]);
+
+        Kegiatan::create([
+            'user_id' => $this->user->id,
+            'nama_kegiatan' => 'Proposal Perlu Revisi Filter',
+            'deskripsi' => 'Deskripsi',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(4)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'BEI',
+            'status' => 'revisi',
+            'kuota_peserta' => 30,
+        ]);
+
+        $approvedResponse = $this->actingAs($this->user, 'web')->get('/kegiatan-saya?status=disetujui');
+        $approvedResponse->assertStatus(200);
+        $approvedResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->has('kegiatanList.data', 1)
+            ->where('kegiatanList.data.0.nama_kegiatan', 'Proposal Disetujui Filter')
+        );
+
+        $rejectedResponse = $this->actingAs($this->user, 'web')->get('/kegiatan-saya?status=ditolak');
+        $rejectedResponse->assertStatus(200);
+        $rejectedResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->has('kegiatanList.data', 1)
+            ->where('kegiatanList.data.0.nama_kegiatan', 'Proposal Ditolak Filter')
+        );
+
+        $revisionResponse = $this->actingAs($this->user, 'web')->get('/kegiatan-saya?status=revisi');
+        $revisionResponse->assertStatus(200);
+        $revisionResponse->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('User/KegiatanSaya')
+            ->has('kegiatanList.data', 1)
+            ->where('kegiatanList.data.0.nama_kegiatan', 'Proposal Perlu Revisi Filter')
         );
     }
 

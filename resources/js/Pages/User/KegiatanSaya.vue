@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faBan, faCircleInfo, faPenToSquare, faTrashCan } from '@fortawesome/free-solid-svg-icons';
@@ -10,11 +10,35 @@ import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     kegiatanList: Object,
+    counts: {
+        type: Object,
+        default: () => ({}),
+    },
     filters: Object,
 });
 
 const currentSort = ref(props.filters?.sort || '');
 const currentDirection = ref(props.filters?.direction || 'asc');
+const currentStatus = ref(props.filters?.status || '');
+const searchQuery = ref(props.filters?.search || '');
+
+const tabs = computed(() => [
+    { key: '', label: 'Semua', count: props.counts?.semua ?? props.kegiatanList?.total ?? 0 },
+    { key: 'menunggu_approval', label: 'Menunggu Review', count: props.counts?.menunggu_approval ?? 0 },
+    { key: 'disetujui', label: 'Disetujui', count: props.counts?.disetujui ?? 0 },
+    { key: 'revisi', label: 'Perlu Revisi', count: props.counts?.revisi ?? 0 },
+    { key: 'ditolak', label: 'Ditolak', count: props.counts?.ditolak ?? 0 },
+    { key: 'selesai', label: 'Selesai', count: props.counts?.selesai ?? 0 },
+]);
+
+const applyFilters = () => {
+    router.get(route('user.kegiatan.index'), {
+        sort: currentSort.value || undefined,
+        direction: currentDirection.value || undefined,
+        status: currentStatus.value || undefined,
+        search: searchQuery.value || undefined,
+    }, { preserveState: true, preserveScroll: true });
+};
 
 const handleSort = (field) => {
     if (currentSort.value === field) {
@@ -23,10 +47,22 @@ const handleSort = (field) => {
         currentSort.value = field;
         currentDirection.value = 'asc';
     }
-    router.get(route('user.kegiatan-saya'), {
-        sort: currentSort.value || undefined,
-        direction: currentDirection.value || undefined,
-    }, { preserveState: true });
+    applyFilters();
+};
+
+const handleStatusFilter = (status) => {
+    currentStatus.value = status;
+    applyFilters();
+};
+
+const handleSearch = () => {
+    applyFilters();
+};
+
+const resetFilter = () => {
+    currentStatus.value = '';
+    searchQuery.value = '';
+    applyFilters();
 };
 
 const cancelProposal = async (item) => {
@@ -74,6 +110,55 @@ const deleteProposal = async (item) => {
                       class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-[#680A10] text-white text-xs font-semibold hover:bg-[#54080D] transition">
                     Ajukan Kegiatan
                 </Link>
+            </div>
+
+            <!-- FILTER TABS & SEARCH -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs font-semibold">
+                    <button
+                        v-for="tab in tabs"
+                        :key="tab.key"
+                        type="button"
+                        @click="handleStatusFilter(tab.key)"
+                        :class="[
+                            'px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5',
+                            currentStatus === tab.key
+                                ? 'bg-[#680A10] text-white shadow-xs'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ]"
+                    >
+                        <span>{{ tab.label }}</span>
+                        <span
+                            :class="[
+                                'px-1.5 py-0.2 rounded-full text-[10px] font-bold',
+                                currentStatus === tab.key
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-slate-100 text-slate-600'
+                            ]"
+                        >
+                            {{ tab.count }}
+                        </span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input
+                        v-model="searchQuery"
+                        @keyup.enter="handleSearch"
+                        type="text"
+                        placeholder="Cari proposal..."
+                        class="w-full sm:w-60 px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#680A10]/20"
+                    />
+                    <button
+                        v-if="searchQuery || currentStatus"
+                        type="button"
+                        @click="resetFilter"
+                        class="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-500 hover:bg-slate-50"
+                        title="Reset Filter"
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -129,7 +214,8 @@ const deleteProposal = async (item) => {
                                             'inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-semibold',
                                             ['disetujui', 'dipublikasikan'].includes(item.status) ? 'bg-emerald-100 text-emerald-800' :
                                             ['diproses', 'berlangsung'].includes(item.status) ? 'bg-blue-100 text-blue-800' :
-                                            ['revisi', 'ditolak'].includes(item.status) ? 'bg-red-100 text-red-800' :
+                                            item.status === 'revisi' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                                            item.status === 'ditolak' ? 'bg-red-100 text-red-800 border border-red-200' :
                                             ['dibatalkan', 'selesai'].includes(item.status) ? 'bg-slate-200 text-slate-700' : 'bg-amber-100 text-amber-800'
                                         ]">
                                             {{ item.status_label || item.status }}

@@ -8,7 +8,17 @@ const props = defineProps({
     kegiatan: Object,
 });
 
+const isHariH = (tanggal) => {
+    if (!tanggal) return false;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return String(tanggal).substring(0, 10) === today;
+};
+
 const changeStatus = async (newStatus) => {
+    if (newStatus === 'selesai' && (props.kegiatan.status !== 'berlangsung' || !isHariH(props.kegiatan.tanggal))) {
+        return;
+    }
     const labels = {
         dipublikasikan: 'Terjadwal',
         berlangsung: 'Berlangsung',
@@ -74,7 +84,7 @@ const changeStatus = async (newStatus) => {
                             Berlangsung
                         </button>
                         <button
-                            v-if="['dipublikasikan', 'berlangsung'].includes(kegiatan.status)"
+                            v-if="kegiatan.status === 'berlangsung' && isHariH(kegiatan.tanggal)"
                             type="button"
                             @click="changeStatus('selesai')"
                             class="min-h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition cursor-pointer shadow-2xs"

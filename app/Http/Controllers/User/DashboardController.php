@@ -19,7 +19,7 @@ class DashboardController extends Controller
         $approvedCount = (clone $proposals)->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung'])->count();
         $revisionCount = (clone $proposals)->where('status', 'revisi')->count();
         $rejectedCount = (clone $proposals)->where('status', 'ditolak')->count();
-        $completedCount = (clone $proposals)->whereIn('status', ['selesai', 'dibatalkan'])->count();
+        $completedCount = (clone $proposals)->where('status', 'selesai')->count();
         $totalCount = (clone $proposals)->count();
 
         return Inertia::render('User/Dashboard', [

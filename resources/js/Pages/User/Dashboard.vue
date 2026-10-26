@@ -69,14 +69,14 @@ const markRead = (n) => {
                             :href="route('user.kegiatan.index')"
                             class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 text-white font-semibold text-xs rounded-xl border border-white/20 backdrop-blur-xs transition-colors"
                         >
-                            <span>Proposal Saya ({{ proposedCount + otherStatusCount + completedCount }})</span>
+                            <span>Proposal Saya ({{ totalProposalsCount || (proposedCount + (approvedCount || otherStatusCount) + revisionCount + rejectedCount + completedCount) }})</span>
                         </Link>
                     </div>
                 </div>
             </div>
 
             <!-- METRIC CARDS -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <!-- Card 1: Kegiatan Diusulkan -->
                 <Link
                     :href="route('user.kegiatan.index', { status: 'menunggu_approval' })"
@@ -114,7 +114,7 @@ const markRead = (n) => {
                     </div>
                     <div class="mt-4 flex items-end justify-between">
                         <div>
-                            <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ otherStatusCount }}</h3>
+                            <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ approvedCount || otherStatusCount }}</h3>
                             <p class="text-[11px] text-slate-500 mt-1.5">Disetujui &amp; terjadwal diselenggarakan</p>
                         </div>
                         <span class="text-xs font-semibold text-emerald-800 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
@@ -123,7 +123,53 @@ const markRead = (n) => {
                     </div>
                 </Link>
 
-                <!-- Card 3: Kegiatan Selesai -->
+                <!-- Card 3: Perlu Revisi -->
+                <Link
+                    :href="route('user.kegiatan.index', { status: 'revisi' })"
+                    class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-sm transition group"
+                >
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Perlu Revisi</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/80">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            Revisi
+                        </span>
+                    </div>
+                    <div class="mt-4 flex items-end justify-between">
+                        <div>
+                            <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ revisionCount }}</h3>
+                            <p class="text-[11px] text-slate-500 mt-1.5">Perlu perbaikan catatan admin</p>
+                        </div>
+                        <span class="text-xs font-semibold text-amber-800 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                            Lihat &rarr;
+                        </span>
+                    </div>
+                </Link>
+
+                <!-- Card 4: Ditolak -->
+                <Link
+                    :href="route('user.kegiatan.index', { status: 'ditolak' })"
+                    class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-sm transition group"
+                >
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Proposal Ditolak</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-red-50 text-red-800 border border-red-200/80">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                            Ditolak
+                        </span>
+                    </div>
+                    <div class="mt-4 flex items-end justify-between">
+                        <div>
+                            <h3 class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">{{ rejectedCount }}</h3>
+                            <p class="text-[11px] text-slate-500 mt-1.5">Proposal ditolak oleh admin</p>
+                        </div>
+                        <span class="text-xs font-semibold text-red-800 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                            Lihat &rarr;
+                        </span>
+                    </div>
+                </Link>
+
+                <!-- Card 5: Kegiatan Selesai -->
                 <Link
                     :href="route('user.kegiatan.index', { status: 'selesai' })"
                     class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-sm transition group"
