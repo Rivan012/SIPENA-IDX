@@ -14,6 +14,8 @@ import {
     UserCircleIcon,
     ChevronDownIcon,
     RefreshIcon,
+    SettingsIcon,
+    DocsIcon,
 } from '@/Icons';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import { confirmDialog, showToast } from '@/Utils/sweetalert';
@@ -211,9 +213,36 @@ const handleLogout = async () => {
 
                     <div>
                         <div class="px-3 mb-2 text-[10px] font-bold tracking-wider text-rose-200/80 uppercase">
-                            PENGATURAN AKUN
+                            PENGATURAN & AKUN
                         </div>
                         <nav class="space-y-1">
+                            <!-- Kategori Kegiatan -->
+                            <Link
+                                :href="route('admin.setting.index')"
+                                @click="mobileOpen = false"
+                                :class="[
+                                    'menu-item',
+                                    (isCurrent('admin.setting.index') || (isCurrent('admin.setting.*') && !isCurrent('admin.setting.presensi*'))) ? 'menu-item-active' : 'menu-item-inactive'
+                                ]"
+                            >
+                                <SettingsIcon class="w-4 h-4 shrink-0" />
+                                <span class="truncate">Kategori Kegiatan</span>
+                            </Link>
+
+                            <!-- Template Presensi -->
+                            <Link
+                                :href="route('admin.setting.presensi')"
+                                @click="mobileOpen = false"
+                                :class="[
+                                    'menu-item',
+                                    isCurrent('admin.setting.presensi*') ? 'menu-item-active' : 'menu-item-inactive'
+                                ]"
+                            >
+                                <DocsIcon class="w-4 h-4 shrink-0" />
+                                <span class="truncate">Template Presensi</span>
+                            </Link>
+
+                            <!-- Profil -->
                             <Link
                                 :href="route('admin.profil.edit')"
                                 @click="mobileOpen = false"

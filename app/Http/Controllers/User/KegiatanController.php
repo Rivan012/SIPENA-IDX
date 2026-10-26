@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Aktivitas;
+use App\Models\KategoriKegiatan;
 use App\Models\Kegiatan;
 use App\Support\ActivityDescriptionSanitizer;
 use Illuminate\Http\Request;
@@ -30,6 +31,7 @@ class KegiatanController extends Controller
                 'mitra' => Auth::guard('web')->user()?->name,
                 'kuota_peserta' => null,
             ],
+            'categories' => KategoriKegiatan::active()->orderBy('nama')->pluck('nama'),
             'descriptionImageUploadUrl' => route('user.description-images.store'),
         ]);
     }
@@ -146,6 +148,7 @@ class KegiatanController extends Controller
 
         return Inertia::render('User/Kegiatan/Edit', [
             'kegiatan' => $kegiatan,
+            'categories' => KategoriKegiatan::active()->orWhere('nama', $kegiatan->jenis_kegiatan)->orderBy('nama')->pluck('nama')->unique()->values(),
             'descriptionImageUploadUrl' => route('user.description-images.store'),
         ]);
     }

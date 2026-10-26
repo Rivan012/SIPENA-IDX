@@ -216,6 +216,10 @@
             margin: 0 0 3px;
         }
 
+        .custom-col {
+            text-align: left;
+        }
+
         .consent {
             font-weight: bold;
             margin-bottom: 0 !important;
@@ -223,6 +227,14 @@
     </style>
 </head>
 <body class="{{ $orientation }}">
+    @php
+        $columns = $columns ?? [
+            ['key' => 'name', 'label' => 'NAMA', 'class' => 'name'],
+            ['key' => 'email', 'label' => 'EMAIL', 'class' => 'email'],
+            ['key' => 'phone', 'label' => 'NO. HP / WA', 'class' => 'phone'],
+            ['key' => 'signature', 'label' => 'TTD', 'class' => 'signature'],
+        ];
+    @endphp
     <table class="letterhead">
         <tbody>
             <tr>
@@ -259,20 +271,18 @@
         <thead>
             <tr>
                 <th class="number">No.</th>
-                <th class="name">NAMA</th>
-                <th class="email">EMAIL</th>
-                <th class="phone">NO. HP / WA</th>
-                <th class="signature">TTD</th>
+                @foreach($columns as $col)
+                    <th class="{{ $col['class'] }}">{{ $col['label'] }}</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
             @for($row = 1; $row <= ($orientation === 'landscape' ? 15 : 25); $row++)
                 <tr>
                     <td class="number">{{ $row }}</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    @foreach($columns as $col)
+                        <td class="{{ $col['class'] }}"></td>
+                    @endforeach
                 </tr>
             @endfor
         </tbody>

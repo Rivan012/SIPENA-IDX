@@ -4,6 +4,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SortableTh from '@/Components/SortableTh.vue';
+import PresensiModal from '@/Components/PresensiModal.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
 import { PdfIcon } from '@/Icons';
 
@@ -19,6 +20,17 @@ const currentStatus = ref(props.filters?.status || '');
 const currentKategori = ref(props.filters?.kategori || '');
 const currentSort = ref(props.filters?.sort || '');
 const currentDirection = ref(props.filters?.direction || 'asc');
+
+const showPresensiModal = ref(false);
+const selectedKegiatanForPresensi = ref(null);
+
+const openPresensi = (item) => {
+    selectedKegiatanForPresensi.value = {
+        id: item.source_id,
+        nama_kegiatan: item.nama_kegiatan,
+    };
+    showPresensiModal.value = true;
+};
 
 const exportPdfUrl = computed(() => {
     return route('admin.approval.export', {
@@ -277,22 +289,15 @@ const handleStatusTransition = async (item, nextStatus, actionLabel) => {
                                             Selesai
                                         </button>
 
-                                        <form v-if="['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'].includes(item.status)"
-                                              method="get"
-                                              :action="route('admin.kegiatan.presensi.download', item.source_id)"
-                                              target="_blank"
-                                              class="inline-flex items-center gap-1">
-                                            <select name="orientation"
-                                                    class="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 font-medium text-[11px] focus:outline-none cursor-pointer">
-                                                <option value="portrait">Portrait</option>
-                                                <option value="landscape">Landscape</option>
-                                            </select>
-                                            <button type="submit"
-                                                    class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-[11px] shadow-2xs cursor-pointer"
-                                                    title="Cetak Presensi">
-                                                Cetak Presensi
-                                            </button>
-                                        </form>
+                                        <button
+                                            v-if="['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'].includes(item.status)"
+                                            type="button"
+                                            @click="openPresensi(item)"
+                                            class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-semibold text-[11px] shadow-2xs cursor-pointer"
+                                            title="Cetak Presensi"
+                                        >
+                                            Cetak Presensi
+                                        </button>
 
                                         <Link :href="route('admin.kegiatan.show', item.source_id)"
                                               class="px-2 py-1 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-[11px] font-medium" title="Detail Verifikasi">
@@ -342,5 +347,12 @@ const handleStatusTransition = async (item, nextStatus, actionLabel) => {
                 </form>
             </div>
         </div>
+
+        <!-- Presensi Modal -->
+        <PresensiModal
+            :show="showPresensiModal"
+            :kegiatan="selectedKegiatanForPresensi"
+            @close="showPresensiModal = false"
+        />
     </AdminLayout>
 </template>

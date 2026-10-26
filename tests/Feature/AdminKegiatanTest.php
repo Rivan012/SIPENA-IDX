@@ -246,6 +246,45 @@ class AdminKegiatanTest extends TestCase
         }
     }
 
+    public function test_admin_can_download_attendance_pdf_with_custom_columns(): void
+    {
+        $kegiatan = Kegiatan::create([
+            'nama_kegiatan' => 'Workshop Kolom Kustom',
+            'deskripsi' => 'Testing presensi kolom kustom',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(3)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI',
+            'status' => 'dipublikasikan',
+            'kuota_peserta' => 50,
+        ]);
+
+        $customColumns = ['NAMA', 'INSTANSI / ASAL', 'NO. HP / WA', 'TTD'];
+
+        $response = $this->actingAs($this->admin, 'admin')->get(route('admin.kegiatan.presensi.download', [
+            'kegiatan' => $kegiatan,
+            'orientation' => 'portrait',
+            'columns' => $customColumns,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'application/pdf');
+
+        $html = view('admin.kegiatan.presensi', [
+            'kegiatan' => $kegiatan,
+            'orientation' => 'portrait',
+            'columns' => [
+                ['key' => 'name', 'label' => 'NAMA', 'class' => 'name'],
+                ['key' => 'instansi', 'label' => 'INSTANSI / ASAL', 'class' => 'custom-col'],
+                ['key' => 'phone', 'label' => 'NO. HP / WA', 'class' => 'phone'],
+                ['key' => 'signature', 'label' => 'TTD', 'class' => 'signature'],
+            ],
+        ])->render();
+
+        $this->assertStringContainsString('INSTANSI / ASAL', $html);
+        $this->assertStringNotContainsString('<th>EMAIL</th>', $html);
+    }
+
     public function test_admin_cannot_download_attendance_pdf_for_non_scheduled_activity(): void
     {
         $kegiatan = Kegiatan::create([

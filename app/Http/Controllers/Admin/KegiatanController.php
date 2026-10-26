@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Aktivitas;
+use App\Models\KategoriKegiatan;
 use App\Models\Kegiatan;
 use App\Support\ActivityDescriptionSanitizer;
 use App\Support\KegiatanNotificationService;
@@ -114,12 +115,77 @@ class KegiatanController extends Controller
             'orientation' => ['required', Rule::in(['portrait', 'landscape'])],
         ]);
 
+        $columns = $this->resolveAttendanceColumns($request->input('columns'));
+
         return Pdf::loadView('admin.kegiatan.presensi', [
             'kegiatan' => $kegiatan,
             'orientation' => $validated['orientation'],
+            'columns' => $columns,
         ])
             ->setPaper('a4', $validated['orientation'])
             ->download("presensi-{$kegiatan->id}-{$validated['orientation']}.pdf");
+    }
+
+    private function resolveAttendanceColumns($input): array
+    {
+        if (is_string($input)) {
+            $decoded = json_decode($input, true);
+            $rawList = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode(',', $input)));
+        } elseif (is_array($input)) {
+            $rawList = $input;
+        } else {
+            $rawList = null;
+        }
+
+        if (empty($rawList)) {
+            if (Storage::disk('local')->exists('settings/presensi_template.json')) {
+                $savedSettings = SettingController::getPresensiSettings();
+                $enabledCols = array_filter($savedSettings['columns'], fn ($c) => ! empty($c['enabled']));
+                if (! empty($enabledCols)) {
+                    $rawList = array_map(fn ($c) => $c['label'], $enabledCols);
+                }
+            }
+        }
+
+        if (empty($rawList)) {
+            return [
+                ['key' => 'name', 'label' => 'NAMA', 'class' => 'name'],
+                ['key' => 'email', 'label' => 'EMAIL', 'class' => 'email'],
+                ['key' => 'phone', 'label' => 'NO. HP / WA', 'class' => 'phone'],
+                ['key' => 'signature', 'label' => 'TTD', 'class' => 'signature'],
+            ];
+        }
+
+        $resolved = [];
+        foreach ($rawList as $item) {
+            $label = is_array($item) ? ($item['label'] ?? $item['name'] ?? '') : (string) $item;
+            $label = trim($label);
+            if ($label === '') {
+                continue;
+            }
+
+            $lower = strtolower($label);
+            $class = match (true) {
+                str_contains($lower, 'nama') || str_contains($lower, 'name') => 'name',
+                str_contains($lower, 'email') => 'email',
+                str_contains($lower, 'hp') || str_contains($lower, 'telepon') || str_contains($lower, 'phone') || str_contains($lower, 'wa') => 'phone',
+                str_contains($lower, 'ttd') || str_contains($lower, 'tanda tangan') || str_contains($lower, 'paraf') || str_contains($lower, 'signature') => 'signature',
+                default => 'custom-col',
+            };
+
+            $resolved[] = [
+                'key' => is_array($item) ? ($item['key'] ?? \Illuminate\Support\Str::slug($label)) : \Illuminate\Support\Str::slug($label),
+                'label' => strtoupper($label),
+                'class' => $class,
+            ];
+        }
+
+        return ! empty($resolved) ? $resolved : [
+            ['key' => 'name', 'label' => 'NAMA', 'class' => 'name'],
+            ['key' => 'email', 'label' => 'EMAIL', 'class' => 'email'],
+            ['key' => 'phone', 'label' => 'NO. HP / WA', 'class' => 'phone'],
+            ['key' => 'signature', 'label' => 'TTD', 'class' => 'signature'],
+        ];
     }
 
     public function edit(Kegiatan $kegiatan): Response
@@ -214,7 +280,12 @@ class KegiatanController extends Controller
         return [
             'kegiatan' => $kegiatan,
             'descriptionImageUploadUrl' => route('admin.description-images.store'),
-            'kategori' => Kegiatan::distinct()->orderBy('jenis_kegiatan')->pluck('jenis_kegiatan'),
+            'kategori' => KategoriKegiatan::active()
+                ->orWhere('nama', $kegiatan->jenis_kegiatan)
+                ->orderBy('nama')
+                ->pluck('nama')
+                ->unique()
+                ->values(),
         ];
     }
 

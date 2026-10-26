@@ -135,4 +135,13 @@ Route::prefix('admin')->middleware('auth:admin')->name('admin.')->group(function
     // Riwayat Aktivitas
     Route::get('aktivitas/export', [AdminCtrl\AktivitasController::class, 'export'])->name('aktivitas.export');
     Route::get('aktivitas', [AdminCtrl\AktivitasController::class, 'index'])->name('aktivitas.index');
+
+    // Pengaturan / Setting (Kategori Kegiatan & Template Presensi)
+    Route::get('setting', [AdminCtrl\SettingController::class, 'index'])->name('setting.index');
+    Route::post('setting/kategori', [AdminCtrl\SettingController::class, 'storeKategori'])->name('setting.kategori.store');
+    Route::patch('setting/kategori/{kategori}/toggle', [AdminCtrl\SettingController::class, 'toggleKategori'])->name('setting.kategori.toggle');
+    Route::delete('setting/kategori/{kategori}', [AdminCtrl\SettingController::class, 'destroyKategori'])->name('setting.kategori.destroy');
+    Route::get('setting/presensi', [AdminCtrl\SettingController::class, 'presensi'])->name('setting.presensi');
+    Route::post('setting/presensi', [AdminCtrl\SettingController::class, 'updatePresensiTemplate'])->name('setting.presensi.update');
+    Route::post('setting/presensi/reset', [AdminCtrl\SettingController::class, 'resetPresensiTemplate'])->name('setting.presensi.reset');
 });

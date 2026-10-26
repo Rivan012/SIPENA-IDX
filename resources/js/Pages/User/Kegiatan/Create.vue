@@ -7,6 +7,7 @@ const RichTextEditor = defineAsyncComponent(() => import('@/Components/RichTextE
 
 const props = defineProps({
     kegiatan: Object,
+    categories: Array,
     descriptionImageUploadUrl: String,
 });
 
@@ -57,11 +58,9 @@ const submit = () => {
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Kegiatan *</label>
                             <select v-model="form.jenis_kegiatan" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white">
-                                <option value="SPM">SPM (Sekolah Pasar Modal)</option>
-                                <option value="Sosialisasi">Sosialisasi</option>
-                                <option value="Workshop">Workshop</option>
-                                <option value="Edukasi">Edukasi Publik</option>
-                                <option value="Webinar">Webinar Online</option>
+                                <option v-for="cat in (props.categories?.length ? props.categories : ['SPM', 'Sosialisasi', 'Workshop', 'Edukasi', 'Webinar'])" :key="cat" :value="cat">
+                                    {{ cat }}
+                                </option>
                             </select>
                         </div>
                         <div>

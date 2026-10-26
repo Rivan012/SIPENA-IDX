@@ -1,12 +1,16 @@
 <script setup>
+import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import RichTextContent from '@/Components/RichTextContent.vue';
+import PresensiModal from '@/Components/PresensiModal.vue';
 import { confirmDialog } from '@/Utils/sweetalert';
 
 const props = defineProps({
     kegiatan: Object,
 });
+
+const showPresensiModal = ref(false);
 
 const isHariH = (tanggal) => {
     if (!tanggal) return false;
@@ -100,23 +104,14 @@ const changeStatus = async (newStatus) => {
                             Edit Kegiatan
                         </Link>
 
-                        <form v-if="['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'].includes(kegiatan.status)"
-                              method="get"
-                              :action="route('admin.kegiatan.presensi.download', kegiatan.id)"
-                              target="_blank"
-                              class="flex flex-wrap items-center gap-2">
-                            <label for="presensi-orientation" class="sr-only">Orientasi PDF presensi</label>
-                            <select id="presensi-orientation"
-                                    name="orientation"
-                                    class="min-h-9 rounded-lg border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#680A10]">
-                                <option value="portrait">Portrait</option>
-                                <option value="landscape">Landscape</option>
-                            </select>
-                            <button type="submit"
-                                    class="min-h-9 rounded-lg bg-[#680A10] px-3.5 text-xs font-semibold text-white transition hover:bg-[#54080D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#680A10] cursor-pointer">
-                                Cetak Presensi
-                            </button>
-                        </form>
+                        <button
+                            v-if="['disetujui', 'dipublikasikan', 'berlangsung', 'selesai'].includes(kegiatan.status)"
+                            type="button"
+                            @click="showPresensiModal = true"
+                            class="min-h-9 rounded-lg bg-[#680A10] px-3.5 text-xs font-semibold text-white transition hover:bg-[#54080D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#680A10] cursor-pointer"
+                        >
+                            Cetak Presensi
+                        </button>
                     </div>
                 </div>
 
@@ -178,6 +173,12 @@ const changeStatus = async (newStatus) => {
                 </div>
             </div>
 
+            <!-- Presensi Modal -->
+            <PresensiModal
+                :show="showPresensiModal"
+                :kegiatan="kegiatan"
+                @close="showPresensiModal = false"
+            />
         </div>
     </AdminLayout>
 </template>
