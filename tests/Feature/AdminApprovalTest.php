@@ -199,6 +199,7 @@ class AdminApprovalTest extends TestCase
             'tanggal' => now()->addDays(11)->format('Y-m-d'),
             'waktu_mulai' => '09:00',
             'lokasi' => 'Aula BEI Bengkulu',
+            'kuota_peserta' => 80,
         ])->assertRedirect("/kegiatan/{$proposal->id}");
 
         $proposal->refresh();

@@ -138,7 +138,17 @@ const confirmDelete = async (k) => {
     }
 };
 
+const isHariH = (tanggal) => {
+    if (!tanggal) return false;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return String(tanggal).substring(0, 10) === today;
+};
+
 const changeStatus = async (k, newStatus) => {
+    if (newStatus === 'selesai' && (k.status !== 'berlangsung' || !isHariH(k.tanggal))) {
+        return;
+    }
     const labels = {
         dipublikasikan: 'Terjadwal',
         berlangsung: 'Berlangsung',
@@ -339,7 +349,7 @@ const changeStatus = async (k, newStatus) => {
                                             Berlangsung
                                         </button>
                                         <button
-                                            v-if="['dipublikasikan', 'berlangsung'].includes(k.status)"
+                                            v-if="k.status === 'berlangsung' && isHariH(k.tanggal)"
                                             type="button"
                                             @click="changeStatus(k, 'selesai')"
                                             class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] shadow-2xs cursor-pointer transition"

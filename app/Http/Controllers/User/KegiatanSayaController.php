@@ -20,6 +20,31 @@ class KegiatanSayaController extends Controller
 
         $query = $user->kegiatanDiajukan()->with(['agenda', 'reviewedByAdmin']);
 
+        $statusFilter = $request->get('status');
+        if ($statusFilter) {
+            if ($statusFilter === 'menunggu_approval') {
+                $query->whereIn('status', ['menunggu_approval', 'diproses']);
+            } elseif ($statusFilter === 'disetujui') {
+                $query->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung']);
+            } elseif ($statusFilter === 'revisi') {
+                $query->where('status', 'revisi');
+            } elseif ($statusFilter === 'ditolak') {
+                $query->where('status', 'ditolak');
+            } elseif ($statusFilter === 'selesai') {
+                $query->whereIn('status', ['selesai', 'dibatalkan']);
+            } else {
+                $query->where('status', $statusFilter);
+            }
+        }
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_kegiatan', 'like', "%{$search}%")
+                    ->orWhere('lokasi', 'like', "%{$search}%")
+                    ->orWhere('jenis_kegiatan', 'like', "%{$search}%");
+            });
+        }
+
         if ($sort && in_array($sort, $allowedSorts, true)) {
             $query->orderBy($sort, $direction);
         } else {
@@ -28,9 +53,20 @@ class KegiatanSayaController extends Controller
 
         $kegiatanList = $query->paginate(10)->withQueryString();
 
+        $baseQuery = $user->kegiatanDiajukan();
+        $counts = [
+            'semua' => (clone $baseQuery)->count(),
+            'menunggu_approval' => (clone $baseQuery)->whereIn('status', ['menunggu_approval', 'diproses'])->count(),
+            'disetujui' => (clone $baseQuery)->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung'])->count(),
+            'revisi' => (clone $baseQuery)->where('status', 'revisi')->count(),
+            'ditolak' => (clone $baseQuery)->where('status', 'ditolak')->count(),
+            'selesai' => (clone $baseQuery)->whereIn('status', ['selesai', 'dibatalkan'])->count(),
+        ];
+
         return Inertia::render('User/KegiatanSaya', [
             'kegiatanList' => $kegiatanList,
-            'filters' => $request->only(['sort', 'direction']),
+            'counts' => $counts,
+            'filters' => $request->only(['sort', 'direction', 'status', 'search']),
         ]);
     }
 }

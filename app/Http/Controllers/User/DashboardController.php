@@ -15,10 +15,21 @@ class DashboardController extends Controller
 
         $proposals = $user->kegiatanDiajukan();
 
+        $proposedCount = (clone $proposals)->whereIn('status', ['menunggu_approval', 'diproses'])->count();
+        $approvedCount = (clone $proposals)->whereIn('status', ['disetujui', 'dipublikasikan', 'berlangsung'])->count();
+        $revisionCount = (clone $proposals)->where('status', 'revisi')->count();
+        $rejectedCount = (clone $proposals)->where('status', 'ditolak')->count();
+        $completedCount = (clone $proposals)->whereIn('status', ['selesai', 'dibatalkan'])->count();
+        $totalCount = (clone $proposals)->count();
+
         return Inertia::render('User/Dashboard', [
-            'proposedCount' => (clone $proposals)->where('status', 'menunggu_approval')->count(),
-            'otherStatusCount' => (clone $proposals)->whereNotIn('status', ['menunggu_approval', 'selesai'])->count(),
-            'completedCount' => (clone $proposals)->where('status', 'selesai')->count(),
+            'proposedCount' => $proposedCount,
+            'approvedCount' => $approvedCount,
+            'revisionCount' => $revisionCount,
+            'rejectedCount' => $rejectedCount,
+            'completedCount' => $completedCount,
+            'otherStatusCount' => $approvedCount,
+            'totalProposalsCount' => $totalCount,
             'recentNotifications' => $user->notifikasi()
                 ->latest('id')
                 ->take(5)

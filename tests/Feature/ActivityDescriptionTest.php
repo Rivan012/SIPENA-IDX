@@ -63,6 +63,7 @@ class ActivityDescriptionTest extends TestCase
             'tanggal' => now()->addDays(7)->format('Y-m-d'),
             'waktu_mulai' => '09:00',
             'lokasi' => 'Aula BEI',
+            'kuota_peserta' => 80,
         ]);
 
         $response->assertRedirect('/kegiatan');

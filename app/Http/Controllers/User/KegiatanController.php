@@ -28,7 +28,7 @@ class KegiatanController extends Controller
                 'waktu_selesai' => '12:00',
                 'lokasi' => '',
                 'mitra' => Auth::guard('web')->user()?->name,
-                'kuota_peserta' => 80,
+                'kuota_peserta' => null,
             ],
             'descriptionImageUploadUrl' => route('user.description-images.store'),
         ]);
@@ -45,9 +45,21 @@ class KegiatanController extends Controller
             'waktu_selesai' => ['nullable', 'string', 'max:10'],
             'lokasi' => ['required', 'string', 'max:255'],
             'mitra' => ['nullable', 'string', 'max:255'],
-            'kuota_peserta' => ['nullable', 'integer', 'min:1'],
+            'kuota_peserta' => ['required', 'integer', 'min:1'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $existingCount = Kegiatan::whereDate('tanggal', $validated['tanggal'])
+            ->whereNotIn('status', ['dibatalkan', 'ditolak'])
+            ->count();
+
+        // ponytail: batas 4 per hari; upgrade ke kuota dinamis via DB settings jika dibutuhkan.
+        if ($existingCount >= 4) {
+            return back()
+                ->withInput()
+                ->withErrors(['tanggal' => 'Batas maksimal 4 pengajuan pada tanggal ini telah tercapai.'])
+                ->with('error', 'Pengajuan pada tanggal tersebut sudah penuh (maksimal 4 kegiatan). Silakan pilih tanggal lain.');
+        }
 
         $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
@@ -64,7 +76,7 @@ class KegiatanController extends Controller
             'waktu_selesai' => $validated['waktu_selesai'] ?? null,
             'lokasi' => $validated['lokasi'],
             'mitra' => $validated['mitra'] ?? Auth::guard('web')->user()?->name,
-            'kuota_peserta' => $validated['kuota_peserta'] ?? 80,
+            'kuota_peserta' => $validated['kuota_peserta'],
             'status' => 'menunggu_approval',
         ]);
 
@@ -153,9 +165,22 @@ class KegiatanController extends Controller
             'waktu_selesai' => ['nullable', 'string', 'max:10'],
             'lokasi' => ['required', 'string', 'max:255'],
             'mitra' => ['nullable', 'string', 'max:255'],
-            'kuota_peserta' => ['nullable', 'integer', 'min:1'],
+            'kuota_peserta' => ['required', 'integer', 'min:1'],
             'proposal_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
         ]);
+
+        $existingCount = Kegiatan::whereDate('tanggal', $validated['tanggal'])
+            ->where('id', '!=', $kegiatan->id)
+            ->whereNotIn('status', ['dibatalkan', 'ditolak'])
+            ->count();
+
+        // ponytail: batas 4 per hari; upgrade ke kuota dinamis via DB settings jika dibutuhkan.
+        if ($existingCount >= 4) {
+            return back()
+                ->withInput()
+                ->withErrors(['tanggal' => 'Batas maksimal 4 pengajuan pada tanggal ini telah tercapai.'])
+                ->with('error', 'Pengajuan pada tanggal tersebut sudah penuh (maksimal 4 kegiatan). Silakan pilih tanggal lain.');
+        }
 
         $validated['deskripsi'] = $this->descriptionSanitizer->sanitize($validated['deskripsi']);
 
@@ -173,7 +198,7 @@ class KegiatanController extends Controller
             'waktu_selesai' => $validated['waktu_selesai'] ?? null,
             'lokasi' => $validated['lokasi'],
             'mitra' => $validated['mitra'] ?? $kegiatan->mitra,
-            'kuota_peserta' => $validated['kuota_peserta'] ?? $kegiatan->kuota_peserta,
+            'kuota_peserta' => $validated['kuota_peserta'],
             'proposal_file_path' => $proposalFilePath ?? $oldProposalFilePath,
         ]);
 

@@ -9,9 +9,13 @@ import {
 } from '@/Icons';
 
 const props = defineProps({
-    proposedCount: Number,
-    otherStatusCount: Number,
-    completedCount: Number,
+    proposedCount: { type: Number, default: 0 },
+    approvedCount: { type: Number, default: 0 },
+    revisionCount: { type: Number, default: 0 },
+    rejectedCount: { type: Number, default: 0 },
+    completedCount: { type: Number, default: 0 },
+    otherStatusCount: { type: Number, default: 0 },
+    totalProposalsCount: { type: Number, default: 0 },
     recentNotifications: {
         type: Array,
         default: () => [],

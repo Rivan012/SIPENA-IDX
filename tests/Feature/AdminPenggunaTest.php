@@ -184,6 +184,7 @@ class AdminPenggunaTest extends TestCase
             'tanggal' => now()->addDays(7)->format('Y-m-d'),
             'waktu_mulai' => '09:00',
             'lokasi' => 'Aula BEI Bengkulu',
+            'kuota_peserta' => 80,
             'proposal_file' => UploadedFile::fake()->createWithContent('proposal.pdf', '%PDF-1.4 proposal'),
         ]);
 
@@ -228,6 +229,7 @@ class AdminPenggunaTest extends TestCase
             'tanggal' => now()->addDays(10)->format('Y-m-d'),
             'waktu_mulai' => '10:00',
             'lokasi' => 'Aula BEI Bengkulu',
+            'kuota_peserta' => 80,
             'proposal_file' => UploadedFile::fake()->createWithContent('proposal-baru.pdf', '%PDF-1.4 new proposal'),
         ]);
 
@@ -249,11 +251,27 @@ class AdminPenggunaTest extends TestCase
             'tanggal' => now()->addDays(7)->format('Y-m-d'),
             'waktu_mulai' => '09:00',
             'lokasi' => 'Aula BEI Bengkulu',
+            'kuota_peserta' => 80,
             'proposal_file' => UploadedFile::fake()->createWithContent('proposal.txt', '%PDF-1.4 still not a .pdf file'),
         ]);
 
         $response->assertSessionHasErrors('proposal_file');
         $this->assertDatabaseMissing('kegiatan', ['nama_kegiatan' => 'Workshop Tanpa PDF']);
+    }
+
+    public function test_maker_proposal_requires_kuota_peserta(): void
+    {
+        $response = $this->actingAs($this->user, 'web')->post('/kegiatan/ajukan', [
+            'nama_kegiatan' => 'Workshop Kuota Kosong',
+            'deskripsi' => 'Proposal tanpa kuota peserta',
+            'jenis_kegiatan' => 'Workshop',
+            'tanggal' => now()->addDays(7)->format('Y-m-d'),
+            'waktu_mulai' => '09:00',
+            'lokasi' => 'Aula BEI Bengkulu',
+        ]);
+
+        $response->assertSessionHasErrors('kuota_peserta');
+        $this->assertDatabaseMissing('kegiatan', ['nama_kegiatan' => 'Workshop Kuota Kosong']);
     }
 
     public function test_user_can_update_and_delete_own_activity_proposal(): void
