@@ -34,4 +34,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->respond(function ($response, Throwable $exception, Request $request) {
+            if ($request->header('X-Inertia') && in_array($response->getStatusCode(), [500, 503, 404, 403, 429])) {
+                return \Inertia\Inertia::render('Error', [
+                    'status' => $response->getStatusCode(),
+                ])->toResponse($request)->setStatusCode($response->getStatusCode());
+            }
+
+            return $response;
+        });
     })->create();
